@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from __future__ import print_function
 import os, sys, base64
 import MySQLdb, argparse
@@ -70,14 +72,11 @@ def main():
     startdate = args.startD
 
   ##### Query #####
-  print("--------------------------------------------")
-  print("XALT QUERY from",startdate,"to",enddate)
-  print("--------------------------------------------")
-  print("")
   resultA = None
+  header = None
   if args.list:
     resultA = describe_xalt_run(cursor)
-    print("\nDescribe XALT table xalt_run\n") 
+    header = "\nDescribe XALT table xalt_run\n"
   if args.data:
     resultA = list_data(cursor, args, startdate, enddate)
   if args.sql:
@@ -87,26 +86,31 @@ def main():
       modA = ModuleExec(cursor)
       modA.build(args, startdate, enddate)
       resultA = modA.report_by(args, args.sort)
-      print("\nTop %s modules sorted by %s\n" % (str(args.num), args.sort))
+      header = "\nTop %s modules sorted by %s\n" % (str(args.num), args.sort)
     else:
       modA = ModuleCountbyName(cursor)
       modA.build(args, startdate, enddate)
       resultA = modA.report_by(args)
-      print("\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.module, args.sort))
+      header = "\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.module, args.sort)
   if args.execrun:
     modA = ExecRunCountbyName(cursor)
     modA.build(args, startdate, enddate)
     resultA = modA.report_by(args)
-    print("\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.execrun, args.sort))
+    header = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.execrun, args.sort)
   if args.user:
-    #modA = ModuleCountbyUser(cursor)
-    modA = ExecRunCountbyUser(cursor)
+    modA = ModuleCountbyUser(cursor)
+    #modA = ExecRunCountbyUser(cursor)
     modA.build(args, startdate, enddate)
     resultA = modA.report_by(args)
-    #print("\nTop %s modules used by %s\n" % (str(args.num), args.user))
-    print("\nTop %s executables used by %s\n" % (str(args.num), args.user))
+    header = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
+    #header = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
 
   if resultA:
+    print("--------------------------------------------")
+    print("XALT QUERY from",startdate,"to",enddate)
+    print("--------------------------------------------")
+    print("")
+    print(header)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
     print()

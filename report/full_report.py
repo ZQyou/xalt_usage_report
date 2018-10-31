@@ -12,9 +12,9 @@ def full_report(cursor, args, startdate, enddate):
   #  Over all job counts
   resultA = kinds_of_jobs(cursor, args, startdate, enddate)
   bt      = BeautifulTbl(tbl=resultA, gap = 4, justify = "lrrrrrrr")
-  print("----------------------")
-  print("Overall MPI Job Counts")
-  print("----------------------")
+  print("------------------")
+  print("Overall Job Counts")
+  print("------------------")
   print("")
   print(bt.build_tbl())
   print("\n")
@@ -28,16 +28,16 @@ def full_report(cursor, args, startdate, enddate):
   resultA = running_other_exec(cursor, args, startdate, enddate)
   bt      = BeautifulTbl(tbl=resultA, gap = 2, justify = "lrrr")
   print("")
-  print("---------------------------------------------------")
-  print("Comparing MPI Self-build vs. Build User != Run User")
-  print("---------------------------------------------------")
+  print("-----------------------------------------------")
+  print("Comparing Self-build vs. Build User != Run User")
+  print("-----------------------------------------------")
   print("")
   print(bt.build_tbl())
   
   print("")
-  print("-------------------")
-  print("Top MPI Executables")
-  print("-------------------")
+  print("---------------")
+  print("Top Executables")
+  print("---------------")
   print("")
   
   ############################################################
@@ -49,21 +49,21 @@ def full_report(cursor, args, startdate, enddate):
   #  Report of Top EXEC by Core Hours
   resultA, sumCH = execA.report_by(args,"corehours")
   bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-  print("\nTop",args.num, "MPI Executables sorted by Core-hours (Total Core Hours(M):",sumCH*1.0e-6,")\n")
+  print("\nTop",args.num, "Executables sorted by Core-hours (Total Core Hours(M):",sumCH*1.0e-6,")\n")
   print(bt.build_tbl())
   
   ############################################################
   #  Report of Top EXEC by Num Jobs
   resultA, sumCH  = execA.report_by(args,"n_jobs")
   bt              = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-  print("\nTop",args.num, "MPI Executables sorted by # Jobs\n")
+  print("\nTop",args.num, "Executables sorted by # Jobs\n")
   print(bt.build_tbl())
   
   ############################################################
   #  Report of Top EXEC by Users
   resultA, sumCH = execA.report_by(args,"n_users")
   bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-  print("\nTop",args.num, "MPI Executables sorted by # Users\n")
+  print("\nTop",args.num, "Executables sorted by # Users\n")
   print(bt.build_tbl())
   
   if (args.full):
@@ -73,7 +73,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"gcc")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for gcc\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for gcc\n")
     print(bt.build_tbl())
 
     ############################################################
@@ -82,7 +82,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"g++")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for g++\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for g++\n")
     print(bt.build_tbl())
   
     ############################################################
@@ -91,7 +91,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"gfortran")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for gfortran\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for gfortran\n")
     print(bt.build_tbl())
 
     ############################################################
@@ -100,7 +100,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"ifort")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for ifort\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for ifort\n")
     print(bt.build_tbl())
 
     ############################################################
@@ -109,7 +109,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"icc")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for icc\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for icc\n")
     print(bt.build_tbl())
   
     ############################################################
@@ -118,7 +118,7 @@ def full_report(cursor, args, startdate, enddate):
     execA.build(args, startdate, enddate,"icpc")
     resultA, sumCH = execA.report_by(args,"corehours")
     bt             = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-    print("\nTop",args.num, "MPI Executables sorted by Core-hours for icpc\n")
+    print("\nTop",args.num, "Executables sorted by Core-hours for icpc\n")
     print(bt.build_tbl())
 
   ############################################################
@@ -127,7 +127,7 @@ def full_report(cursor, args, startdate, enddate):
   modA.build(args, startdate, enddate)
   resultA = modA.report_by(args,"corehours")
   bt      = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrl")
-  print("\nTop",args.num, "MPI Modules sorted by Core-hours \n")
+  print("\nTop",args.num, "Modules sorted by Core-hours \n")
   print(bt.build_tbl())
   
   ############################################################
@@ -156,7 +156,7 @@ def full_report(cursor, args, startdate, enddate):
   bt      = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrrl")
   print("")
   print("---------------------------------------------------------------------------------")
-  print("Libraries used by MPI Executables sorted by Core Hours grouped by module families")
+  print("Libraries used by Executables sorted by Core Hours grouped by module families")
   print("---------------------------------------------------------------------------------")
   print("")
   print(bt.build_tbl())
@@ -167,7 +167,7 @@ def full_report(cursor, args, startdate, enddate):
   bt      = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrrl")
   print("")
   print("------------------------------------------------------")
-  print("Libraries used by MPI Executables sorted by Core Hours")
+  print("Libraries used by Executables sorted by Core Hours")
   print("------------------------------------------------------")
   print("")
   print(bt.build_tbl())
@@ -181,7 +181,7 @@ def full_report(cursor, args, startdate, enddate):
     bt      = BeautifulTbl(tbl=resultA, gap = 2, justify = "rrrrl")
     print("")
     print("-------------------------------------------------------------------")
-    print("Libraries used by MPI Executables sorted by Core Hours for largemem")
+    print("Libraries used by Executables sorted by Core Hours for largemem")
     print("-------------------------------------------------------------------")
     print("")
     print(bt.build_tbl())

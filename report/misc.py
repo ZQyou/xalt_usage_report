@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 def kinds_of_jobs(cursor, args, startdate, enddate):
 
   query = "SELECT ROUND(SUM(run_time*num_cores/3600)) as corehours,                \
