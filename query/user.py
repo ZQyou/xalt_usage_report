@@ -1,6 +1,6 @@
 from operator import itemgetter
 
-class ExecRunCountbyName:
+class UserCountbyModule:
   def __init__(self, cursor):
     self.__modA  = []
     self.__cursor = cursor
@@ -10,41 +10,39 @@ class ExecRunCountbyName:
     SELECT 
     ROUND(SUM(run_time*num_cores/3600)) as corehours,
     count(date)                         as n_jobs,
-    COUNT(DISTINCT(user))               as n_users,
     module_name                         as modules,
-    exec_path                           as executables
+    user                                as usernames
     from xalt_run where syshost like %s
-    and exec_path like %s
+    and module_name like %s
     and date >= %s and date < %s and  module_name is not null
-    group by executables
+    group by modules
     """
     cursor  = self.__cursor
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_users, modules, executables in resultA:
+    for corehours, n_jobs, modules, usernames in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
-                 'n_users'   : n_users,
                  'modules'   : modules,
-                 'executables' : executables}
+                 'usernames' : usernames}
       modA.append(entryT)
 
   def report_by(self, args):
     resultA = []
-    resultA.append(["CoreHrs", "# Jobs","# Users", "ExecPath"])
-    resultA.append(["-------", "------","-------", "-------"])
+    resultA.append(["CoreHrs", "# Jobs","Modules", "User Name"])
+    resultA.append(["-------", "------","-------", "---------"])
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % (entryT['corehours']),  "%d" % (entryT['n_jobs']) , "%d" %(entryT['n_users']), entryT['executables'] + " (%s)" % (entryT['modules'])])
+      resultA.append(["%.0f" % (entryT['corehours']),  "%d" % (entryT['n_jobs']) , entryT['modules'], entryT['usernames']])
     
     return resultA
 
-class ExecRunCountbyUser:
+class UserCountbyExecRun:
   def __init__(self, cursor):
     self.__modA  = []
     self.__cursor = cursor
@@ -54,35 +52,37 @@ class ExecRunCountbyUser:
     SELECT 
     ROUND(SUM(run_time*num_cores/3600)) as corehours,
     count(date)                         as n_jobs,
-    module_name                         as modules,
     exec_path                           as executables,
-    user
+    module_name                         as modules,
+    user                                as usernames
     from xalt_run where syshost like %s
-    and user like %s
+    and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
     and date >= %s and date < %s and  module_name is not null
     group by executables
     """
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.user, startdate, enddate))
+    cursor.execute(query, (args.syshost, '%'+args.sql+'%', startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs,  modules, executables, user in resultA:
-      entryT = { 'corehours' : corehours,
-                 'n_jobs'    : n_jobs,
-                 'modules'   : modules,
-                 'executables' : executables }
+    for corehours, n_jobs, executables, modules, usernames in resultA:
+      entryT = { 'corehours'   : corehours,
+                 'n_jobs'      : n_jobs,
+                 'executables' : executables,
+                 'modules'     : modules,
+                 'usernames'   : usernames}
       modA.append(entryT)
 
   def report_by(self, args):
     resultA = []
-    resultA.append(["CoreHrs", "# Jobs", "ExecPath"])
-    resultA.append(["-------", "------", "-------"])
+    resultA.append(["CoreHrs", "# Jobs","User Name", "ExecPath"])
+    resultA.append(["-------", "------","---------", "-------"])
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % (entryT['corehours']),  "%d" % (entryT['n_jobs']), entryT['executables'] + " (%s)" % (entryT['modules'])])
+      resultA.append(["%.0f" % (entryT['corehours']),  "%d" % (entryT['n_jobs']) , entryT['usernames'], entryT['executables'] + " (%s)" % (entryT['modules'])])
     
     return resultA
+
