@@ -28,4 +28,5 @@ Report top 50 modules used by a particular user starting from October, 2018:
 ```
 
 ## To-do
-Current usage report for executables is limited to those executables with modules. Add option to disable or enable it.
+* Current usage report for executables is limited to those executables with modules. Add option to disable or enable it.
+* Fix incorrect username report 
