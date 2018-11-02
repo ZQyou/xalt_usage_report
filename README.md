@@ -12,13 +12,13 @@ Generate a full report with more detail
 ``` 
 Report the usage of a particular module 
 ```
-./xalt_usage_report.py --module mvapich2
+./xalt_usage_report.py --module --sql '%mvapich2/2.3%'
 ```
 Report the usage of a particular executable
 ```
-./xalt_usage_report.py --execrun pmemd
+./xalt_usage_report.py --execrun --sql '%pmemd%'
 ```
 Report top 50 modules used by a particular user starting from October, 2018:
 ```
-./xalt_usage_report.py --user sciappstest --num 50 --start 2018-10-01
+./xalt_usage_report.py --module --user sciappstest --num 50 --start 2018-10-01
 ```

@@ -19,7 +19,7 @@ def list_data(cursor, args, startdate, enddate):
     return resultA
 
 def user_sql(cursor, args):
-    query = args.sql + \
+    query = args.dbg + \
     """
     ORDER BY date DESC
     """ + \

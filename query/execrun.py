@@ -14,7 +14,7 @@ class ExecRunCountbyName:
     module_name                         as modules,
     exec_path
     from xalt_run where syshost like %s
-    and exec_path like %s
+    and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
     and date >= %s and date < %s and  module_name is not null
     group by exec_path
     """

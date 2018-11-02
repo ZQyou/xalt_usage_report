@@ -18,7 +18,7 @@ class ModuleCountbyName:
     group by modules
     """
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, '%'+args.module+'%', startdate, enddate))
+    cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
     for corehours, n_jobs, n_users, modules in resultA:
