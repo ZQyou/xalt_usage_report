@@ -15,7 +15,7 @@ class ExecRunCountbyName:
     exec_path                           as executables
     from xalt_run where syshost like %s
     and exec_path like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date < %s
     group by executables
     """
     cursor  = self.__cursor
@@ -59,7 +59,7 @@ class ExecRunCountbyUser:
     user
     from xalt_run where syshost like %s
     and user like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date < %s
     group by executables
     """
     cursor  = self.__cursor

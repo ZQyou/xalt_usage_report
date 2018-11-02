@@ -57,7 +57,7 @@ class UserCountbyExecRun:
     user                                as usernames
     from xalt_run where syshost like %s
     and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date < %s
     group by executables
     """
     cursor  = self.__cursor
