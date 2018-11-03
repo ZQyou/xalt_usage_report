@@ -16,7 +16,7 @@ Report the usage of a particular module
 ```
 Report the usage of a particular module with usernames
 ```
-./xalt_usage_report.py --username --module --sql 'mvapich2/2.3%'
+./xalt_usage_report.py --module --sql 'mvapich2/2.3%' --username
 ```
 Report the usage of a particular executable
 ```
@@ -29,4 +29,3 @@ Report top 50 modules used by a particular user starting from October, 2018:
 
 ## To-do
 * Current usage report for executables is limited to those executables with modules. Add option to disable or enable it.
-* Fix incorrect username report 

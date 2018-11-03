@@ -15,7 +15,7 @@ class UserCountbyModule:
     from xalt_run where syshost like %s
     and module_name like %s
     and date >= %s and date < %s and  module_name is not null
-    group by usernames
+    group by usernames, modules
     """
     cursor  = self.__cursor
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
@@ -58,7 +58,7 @@ class UserCountbyExecRun:
     from xalt_run where syshost like %s
     and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
     and date >= %s and date < %s
-    group by usernames
+    group by usernames, executables
     """
     cursor  = self.__cursor
     cursor.execute(query, (args.syshost, '%'+args.sql+'%', startdate, enddate))
