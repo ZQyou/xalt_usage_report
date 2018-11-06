@@ -10,6 +10,10 @@ Generate a full report with more detail
 ```
 ./xalt_usage_report.py --full
 ``` 
+Report the module usage sorted by # users
+```
+./xalt_usage_report.py --module --sort n_users
+```
 Report the usage of a particular module 
 ```
 ./xalt_usage_report.py --module --sql 'mvapich2/2.3%'
@@ -17,6 +21,10 @@ Report the usage of a particular module
 Report the usage of a particular module with usernames
 ```
 ./xalt_usage_report.py --module --sql 'mvapich2/2.3%' --username
+```
+Report the executable usage
+```
+./xalt_usage_report.py --execrun
 ```
 Report the usage of a particular executable
 ```
@@ -28,4 +36,3 @@ Report top 50 modules used by a particular user starting from October, 2018:
 ```
 
 ## To-do
-* Current usage report for executables is limited to those executables with modules. Add option to disable or enable it.

@@ -30,15 +30,15 @@ class UserCountbyModule:
 
   def report_by(self, args):
     resultA = []
-    resultA.append(["CoreHrs", "# Jobs","Modules", "User Name"])
-    resultA.append(["-------", "------","-------", "---------"])
+    resultA.append(["CoreHrs", "# Jobs", "User Name","Modules"])
+    resultA.append(["-------", "------", "---------","-------"])
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % (entryT['corehours']),  "%d" % (entryT['n_jobs']) , entryT['modules'], entryT['usernames']])
+      resultA.append(["%.0f" % (entryT['corehours']), "%d" % (entryT['n_jobs']), entryT['usernames'], entryT['modules']])
     
     return resultA
 
