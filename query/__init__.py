@@ -4,7 +4,7 @@ from .execrun import *
 from .username import *
 
 __all__ = [
-    'describe_xalt_run', 'list_data', 'user_sql', 
+    'describe_table', 'show_tables', 'select_data', 'user_sql', 
     'ModuleCountbyName', 'ModuleCountbyUser',
     'ExecRunCountbyName', 'ExecRunCountbyUser',
     'UserCountbyModule', 'UserCountbyExecRun'

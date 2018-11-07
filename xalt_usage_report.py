@@ -44,7 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="report module usage")
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="username instead of n_users")
-    parser.add_argument("--list",    dest='list',      action="store_true",                            help="describe xalt_run tables")
+    parser.add_argument("--list",    dest='list',      action="store",       default = None,           help="show/describe tables")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
     args = parser.parse_args()
     return args
@@ -77,11 +77,17 @@ def main():
   resultA = None
   queryA = None
   header = None
+
+  # debug
   if args.list:
-    resultA = describe_xalt_run(cursor)
-    header = "\nDescribe XALT table xalt_run\n"
+    if args.list != "tables":
+      resultA = describe_table(cursor, args)
+      header = "\nDescribe the table '%s'\n" % args.list
+    else:
+      resultA = show_tables(cursor)
+      header = "\nAvailable tables in database\n"
   if args.data:
-    resultA = list_data(cursor, args, startdate, enddate)
+    resultA = select_data(cursor, args, startdate, enddate)
   if args.dbg:
     resultA = user_sql(cursor, args)
   
