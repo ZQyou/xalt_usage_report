@@ -44,6 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="report module usage")
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="username instead of n_users")
+    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report cuda-executable usage")
     parser.add_argument("--list",    dest='list',      action="store",       default = None,           help="show/describe tables")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
     args = parser.parse_args()
