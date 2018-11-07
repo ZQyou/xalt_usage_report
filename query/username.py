@@ -1,4 +1,13 @@
 from operator import itemgetter
+from subprocess import Popen, PIPE
+from pprint import pprint
+from re import search, compile, IGNORECASE
+
+group_re = compile('Primary Group:\s+(.*)\n', IGNORECASE)
+def get_osc_group(username):
+  process = Popen(['OSCfinger %s' % username], shell=True, stdout=PIPE, stderr=PIPE)
+  stdout, stderr = process.communicate()
+  return search(group_re, stdout).group(1)
 
 class UserCountbyModule:
   def __init__(self, cursor):
@@ -36,15 +45,23 @@ class UserCountbyModule:
 
   def report_by(self, args):
     resultA = []
-    resultA.append(["CoreHrs", "# Jobs", "# GPUs", "User Name", "Modules"])
-    resultA.append(["-------", "------", "------", "---------", "-------"])
+    if args.group:
+      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Group", "Modules"])
+      resultA.append(["-------", "------", "------", "--------", "-----", "-------"])
+    else:
+      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Modules"])
+      resultA.append(["-------", "------", "------", "--------", "-------"])
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'], entryT['modules']])
+      if args.group:
+        group = get_osc_group(entryT['usernames'])
+        resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'],  group, entryT['modules']])
+      else:
+        resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'], entryT['modules']])
     
     return resultA
 
@@ -86,15 +103,23 @@ class UserCountbyExecRun:
 
   def report_by(self, args):
     resultA = []
-    resultA.append(["CoreHrs", "# Jobs", "# GPUs", "User Name", "ExecPath"])
-    resultA.append(["-------", "------", "------", "---------", "-------"])
+    if args.group:
+      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Group", "ExecPath"])
+      resultA.append(["-------", "------", "------", "--------", "-----", "-------"])
+    else:
+      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "ExecPath"])
+      resultA.append(["-------", "------", "------", "--------", "-------"])
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], entryT['executables'] + " (%s)" % entryT['modules']])
+      if args.group:
+        group = get_osc_group(entryT['usernames'])
+        resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], group, entryT['executables'] + " (%s)" % entryT['modules']])
+      else:
+        resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], entryT['executables'] + " (%s)" % entryT['modules']])
     
     return resultA
 

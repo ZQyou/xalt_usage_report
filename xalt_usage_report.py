@@ -43,6 +43,7 @@ class CmdLineOptions(object):
     parser.add_argument("--sort",    dest='sort',      action="store",       default = "corehours",    help="sort by corehours (default) | n_users | n_jobs")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
+    parser.add_argument("--group",   dest='group',     action="store_true",                            help="print username and group")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--list",    dest='list',      action="store",       default = None,           help="show/describe tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
@@ -105,6 +106,7 @@ def main():
       queryA.build(args, startdate, enddate)
       resultA, sumCH = queryA.report_by(args, args.sort)
   else:
+    args.username = True if args.group else args.username
     if args.module:
       if args.username: 
         queryA = UserCountbyModule(cursor)
