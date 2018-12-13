@@ -1,6 +1,5 @@
 from operator import itemgetter
 from subprocess import Popen, PIPE
-from pprint import pprint
 from re import search, compile, IGNORECASE
 
 group_re = compile('Primary Group:\s+(.*)\n', IGNORECASE)
