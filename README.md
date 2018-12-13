@@ -6,10 +6,6 @@ Generate a full report
 ```
 ./xalt_usage_report.py
 ```
-Generate a full report with more detail
-```
-./xalt_usage_report.py --full
-``` 
 Report the module usage sorted by # users
 ```
 ./xalt_usage_report.py --module --sort n_users
