@@ -75,7 +75,9 @@ def main():
   if (args.startD is not None):
     startdate = args.startD
 
-  
+  startdate_t = startdate + ' 00:00:00'
+  enddate_t = enddate + ' 23:59:59'
+
   ##### Report #####
   if args.report:
     print("--------------------------------------------")
@@ -83,7 +85,7 @@ def main():
     print("--------------------------------------------")
     print("")
     print("")
-    full_report(cursor, args, startdate, enddate)
+    full_report(cursor, args, startdate_t, enddate_t)
     sys.exit(0)
 
   ##### Query #####
@@ -103,7 +105,7 @@ def main():
       resultA = show_tables(cursor)
       headerA = "\nAvailable tables in database\n"
   if args.data:
-    resultA = select_data(cursor, args, startdate, enddate)
+    resultA = select_data(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
   
@@ -112,12 +114,12 @@ def main():
 #   if args.module:
 #     queryA = ModuleExec(cursor)
 #     headerA = "\nTop %s modules sorted by %s\n" % (str(args.num), args.sort)
-#     queryA.build(args, startdate, enddate)
+#     queryA.build(args, startdate_t, enddate_t)
 #     resultA = queryA.report_by(args, args.sort)
 #   if args.execrun:
 #     queryA = ExecRun(cursor)
 #     headerA = "\nTop %s executables sorted by %s\n" % (str(args.num), args.sort)
-#     queryA.build(args, startdate, enddate)
+#     queryA.build(args, startdate_t, enddate_t)
 #     resultA, sumCH = queryA.report_by(args, args.sort)
 # else:
   
@@ -129,7 +131,7 @@ def main():
     else:
       queryA = ModuleCountbyUser(cursor)
       headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
-    queryA.build(args, startdate, enddate)
+    queryA.build(args, startdate_t, enddate_t)
     resultA = queryA.report_by(args)
 
   if not resultA:
@@ -156,11 +158,11 @@ def main():
       headerB = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.sql, args.sort)
 
     if queryA:
-      queryA.build(args, startdate, enddate)
+      queryA.build(args, startdate_t, enddate_t)
       resultA = queryA.report_by(args)
 
     if queryB:
-      queryB.build(args, startdate, enddate)
+      queryB.build(args, startdate_t, enddate_t)
       resultB = queryA.report_by(args)
 
   if resultA:
