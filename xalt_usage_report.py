@@ -4,7 +4,6 @@ from __future__ import print_function
 import os, sys, base64
 import MySQLdb, argparse
 import time
-from operator import itemgetter
 from datetime import datetime, timedelta
 from pprint import pprint
 try:

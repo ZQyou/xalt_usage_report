@@ -16,7 +16,7 @@ class ModuleCountbyName:
     module_name                         as modules
     from xalt_run where syshost like %s
     and module_name like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date <= %s and  module_name is not null
     """ + \
     has_gpu +\
     """
@@ -64,7 +64,7 @@ class ModuleCountbyUser:
     user    
     from xalt_run where syshost like %s
     and user like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date <= %s and  module_name is not null
     """ + \
     has_gpu + \
     """

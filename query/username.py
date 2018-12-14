@@ -24,7 +24,7 @@ class UserCountbyModule:
     user                                as usernames
     from xalt_run where syshost like %s
     and module_name like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date <= %s and  module_name is not null
     """ + \
     has_gpu + \
     """
@@ -81,7 +81,7 @@ class UserCountbyExecRun:
     user                                as usernames
     from xalt_run where syshost like %s
     and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
-    and date >= %s and date < %s
+    and date >= %s and date <= %s
     """ + \
     has_gpu + \
     """

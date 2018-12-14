@@ -86,7 +86,7 @@ def running_other_exec(cursor, args, startdate, enddate):
            WHERE t1.uuid is not NULL and t1.uuid = t2.uuid                  \
            and t1.syshost like %s                                           \
            and t1.user != t2.build_user and t1.module_name is NULL          \
-           and t1.date >= %s and t1.date < %s"
+           and t1.date >= %s and t1.date <= %s"
 
   resultT = {}
   cursor.execute(query, (args.syshost, startdate, enddate));
@@ -110,7 +110,7 @@ def running_other_exec(cursor, args, startdate, enddate):
            WHERE t1.uuid is not NULL and t1.uuid = t2.uuid                  \
            and t1.syshost like %s                                           \
            and t1.user = t2.build_user                                      \
-           and t1.date >= %s and t1.date < %s"
+           and t1.date >= %s and t1.date <= %s"
   
   cursor.execute(query, (args.syshost, startdate, enddate));
   if (cursor.rowcount == 0):

@@ -13,7 +13,7 @@ class ModuleExec:
     COUNT(DISTINCT(user))               as n_users,
     module_name                         as modules
     from xalt_run where syshost like %s
-    and date >= %s and date < %s and  module_name is not null
+    and date >= %s and date <= %s and  module_name is not null
     group by modules
     """
     cursor  = self.__cursor

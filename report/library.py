@@ -24,7 +24,7 @@ class Libraries:
                     where ( t1.module_name is not NULL and t1.module_name != 'NULL') \
                     and t1.obj_id = t2.obj_id and t2.run_id = t3.run_id              \
                     and t3.syshost like %s and t3.queue like %s                      \
-                    and t3.date >= %s and t3.date < %s                               \
+                    and t3.date >= %s and t3.date <= %s                               \
                     group by t1.object_path order by corehours desc"
 
     cursor  = self.__cursor

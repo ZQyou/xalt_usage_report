@@ -14,7 +14,7 @@ def select_data(cursor, args, startdate, enddate):
     query =  "SELECT "+ args.data + " FROM xalt_run" \
     """
     WHERE syshost like %s
-    AND date >= %s and date < %s
+    AND date >= %s and date <= %s
     ORDER BY date DESC
     """ + \
     "LIMIT " + str(args.num)

@@ -17,7 +17,7 @@ class ExecRunCountbyName:
     exec_path                           as executables
     from xalt_run where syshost like %s
     and exec_path like %s
-    and date >= %s and date < %s
+    and date >= %s and date <= %s
     """ + \
     has_gpu + \
     """
@@ -67,7 +67,7 @@ class ExecRunCountbyUser:
     user
     from xalt_run where syshost like %s
     and user like %s
-    and date >= %s and date < %s
+    and date >= %s and date <= %s
     """ + \
     has_gpu + \
     """

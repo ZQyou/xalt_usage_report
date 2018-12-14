@@ -77,7 +77,7 @@ class ExecRunLink:
     sA.append(" COUNT(t1.date) as n_jobs, COUNT(DISTINCT(t1.user)) as n_users")
     sA.append("   FROM xalt_run as t1, xalt_link as t2 ")
     sA.append("  WHERE t1.syshost like '%s' ")
-    sA.append("    AND t1.date >= '%s' AND t1.date < '%s' ")
+    sA.append("    AND t1.date >= '%s' AND t1.date <= '%s' ")
     sA.append("    AND t1.uuid = t2.uuid")
     sA.append("    AND t2.link_program = '%s' ")
     sA.append("  GROUP BY execname ORDER BY totalcput DESC")

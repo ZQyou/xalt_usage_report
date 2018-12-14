@@ -8,7 +8,7 @@ class CompilerUsageByCount:
     query = """
     SELECT link_program, count(date) as count FROM xalt_link
     WHERE build_syshost like %s
-    AND   date >= %s AND date < %s
+    AND   date >= %s AND date <= %s
     GROUP by link_program
     """
     cursor  = self.__cursor
@@ -50,7 +50,7 @@ class CompilerUsageByCoreHours:
     WHERE t1.uuid is not NULL
     AND   t1.uuid = t2.uuid
     and   t1.syshost like %s
-    AND   t1.date >= %s and t1.date < %s
+    AND   t1.date >= %s and t1.date <= %s
     GROUP by link_program
     """
     cursor  = self.__cursor
