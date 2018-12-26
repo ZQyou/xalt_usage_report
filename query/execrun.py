@@ -34,7 +34,7 @@ class ExecRunCountbyName:
                  'n_jobs'    : n_jobs,
                  'n_users'   : n_users,
                  'n_gpus'    : n_gpus,
-                 'n_cores'   : n_gpus,
+                 'n_cores'   : n_cores,
                  'n_thds'    : n_thds,
                  'modules'   : modules,
                  'executables' : executables}
@@ -93,7 +93,7 @@ class ExecRunCountbyUser:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,
-                 'n_cores'   : n_gpus,
+                 'n_cores'   : n_cores,
                  'n_thds'    : n_thds,
                  'modules'   : modules,
                  'executables' : executables }

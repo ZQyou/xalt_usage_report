@@ -40,7 +40,7 @@ class UserCountbyModule:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,
-                 'n_cores'   : n_gpus,
+                 'n_cores'   : n_cores,
                  'n_thds'    : n_thds,
                  'modules'   : modules,
                  'usernames' : usernames}
@@ -102,8 +102,8 @@ class UserCountbyExecRun:
       entryT = { 'corehours'   : corehours,
                  'n_jobs'      : n_jobs,
                  'n_gpus'      : n_gpus,
-                 'n_cores'   : n_gpus,
-                 'n_thds'    : n_thds,
+                 'n_cores'     : n_cores,
+                 'n_thds'      : n_thds,
                  'executables' : executables,
                  'modules'     : modules,
                  'usernames'   : usernames}
