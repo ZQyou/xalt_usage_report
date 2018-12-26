@@ -9,7 +9,7 @@ class ExecRunCountbyName:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600)) as corehours,
+    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
     count(date)                         as n_jobs,
     COUNT(DISTINCT(user))               as n_users,
     num_gpus                            as n_gpus,
@@ -46,7 +46,7 @@ class ExecRunCountbyName:
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_users'],  "%d" % entryT['n_gpus'], entryT['executables'] + " (%s)" % (entryT['modules'])])
+      resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_users'],  "%d" % entryT['n_gpus'], entryT['executables'] + " (%s)" % (entryT['modules'])])
     
     return resultA
 
@@ -59,7 +59,7 @@ class ExecRunCountbyUser:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600)) as corehours,
+    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
     count(date)                         as n_jobs,
     num_gpus                            as n_gpus,
     module_name                         as modules,
@@ -95,6 +95,6 @@ class ExecRunCountbyUser:
     num = min(int(args.num), len(sortA))
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'],  entryT['executables'] + " (%s)" % (entryT['modules'])])
+      resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'],  entryT['executables'] + " (%s)" % (entryT['modules'])])
     
     return resultA

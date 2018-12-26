@@ -17,7 +17,7 @@ class UserCountbyModule:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600)) as corehours,
+    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
     count(date)                         as n_jobs,
     num_gpus                            as n_gpus,
     module_name                         as modules,
@@ -58,9 +58,9 @@ class UserCountbyModule:
       entryT = sortA[i]
       if args.group:
         group = get_osc_group(entryT['usernames'])
-        resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'],  group, entryT['modules']])
+        resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'],  group, entryT['modules']])
       else:
-        resultA.append(["%.0f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'], entryT['modules']])
+        resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'], entryT['modules']])
     
     return resultA
 
@@ -73,7 +73,7 @@ class UserCountbyExecRun:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600)) as corehours,
+    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
     count(date)                         as n_jobs,
     num_gpus                            as n_gpus,
     exec_path                           as executables,
@@ -116,9 +116,9 @@ class UserCountbyExecRun:
       entryT = sortA[i]
       if args.group:
         group = get_osc_group(entryT['usernames'])
-        resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], group, entryT['executables'] + " (%s)" % entryT['modules']])
+        resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], group, entryT['executables'] + " (%s)" % entryT['modules']])
       else:
-        resultA.append(["%.0f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], entryT['executables'] + " (%s)" % entryT['modules']])
+        resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], entryT['executables'] + " (%s)" % entryT['modules']])
     
     return resultA
 
