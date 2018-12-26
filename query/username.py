@@ -17,9 +17,11 @@ class UserCountbyModule:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
+    ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
     count(date)                         as n_jobs,
     num_gpus                            as n_gpus,
+    num_cores                           as n_cores,
+    num_threads                         as n_thds,
     module_name                         as modules,
     user                                as usernames
     from xalt_run where syshost like %s
@@ -34,33 +36,36 @@ class UserCountbyModule:
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, modules, usernames in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, usernames in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,
+                 'n_cores'   : n_gpus,
+                 'n_thds'    : n_thds,
                  'modules'   : modules,
                  'usernames' : usernames}
       modA.append(entryT)
 
   def report_by(self, args):
     resultA = []
+    header = ["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "Username", "Modules"]
     if args.group:
-      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Group", "Modules"])
-      resultA.append(["-------", "------", "------", "--------", "-----", "-------"])
-    else:
-      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Modules"])
-      resultA.append(["-------", "------", "------", "--------", "-------"])
+      header.insert(-1, "Group")
+    hline  = map(lambda x: "-"*len(x), header)
+    resultA.append(header)
+    resultA.append(hline)
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
+    fmtT = ["%.2f", "%d", "%d", "%d", "%d", "%s", "%s"]
+    orderT = ['corehours', 'n_jobs', 'n_gpus', 'n_cores', 'n_thds', 'usernames', 'modules']
     for i in range(num):
       entryT = sortA[i]
+      resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       if args.group:
         group = get_osc_group(entryT['usernames'])
-        resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'],  group, entryT['modules']])
-      else:
-        resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'], entryT['usernames'], entryT['modules']])
+        resultA[-1].insert(-1, group)
     
     return resultA
 
@@ -73,9 +78,11 @@ class UserCountbyExecRun:
     has_gpu = "and num_gpus > 0" if args.gpu else ""
     query = """
     SELECT 
-    ROUND(SUM(run_time*num_cores/3600),2) as corehours,
+    ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
     count(date)                         as n_jobs,
     num_gpus                            as n_gpus,
+    num_cores                           as n_cores,
+    num_threads                         as n_thds,
     exec_path                           as executables,
     module_name                         as modules,
     user                                as usernames
@@ -91,10 +98,12 @@ class UserCountbyExecRun:
     cursor.execute(query, (args.syshost, '%'+args.sql+'%', startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, executables, modules, usernames in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, executables, modules, usernames in resultA:
       entryT = { 'corehours'   : corehours,
                  'n_jobs'      : n_jobs,
                  'n_gpus'      : n_gpus,
+                 'n_cores'   : n_gpus,
+                 'n_thds'    : n_thds,
                  'executables' : executables,
                  'modules'     : modules,
                  'usernames'   : usernames}
@@ -102,23 +111,25 @@ class UserCountbyExecRun:
 
   def report_by(self, args):
     resultA = []
+    header =["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "Username", "ExecPath"]
     if args.group:
-      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "Group", "ExecPath"])
-      resultA.append(["-------", "------", "------", "--------", "-----", "-------"])
-    else:
-      resultA.append(["CoreHrs", "# Jobs", "# GPUs", "Username", "ExecPath"])
-      resultA.append(["-------", "------", "------", "--------", "-------"])
+      header.insert(-1, "Group")
+    hline  = map(lambda x: "-"*len(x), header)
+    resultA.append(header)
+    resultA.append(hline)
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
+    fmtT = ["%.2f", "%d", "%d", "%d", "%d", "%s"]
+    orderT = ['corehours', 'n_jobs', 'n_gpus', 'n_cores', 'n_thds', 'usernames']
     for i in range(num):
       entryT = sortA[i]
+      resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       if args.group:
         group = get_osc_group(entryT['usernames'])
-        resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], group, entryT['executables'] + " (%s)" % entryT['modules']])
-      else:
-        resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_gpus'], entryT['usernames'], entryT['executables'] + " (%s)" % entryT['modules']])
+        resultA[-1].append(group)
+      resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
     
     return resultA
 
