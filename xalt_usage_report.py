@@ -43,6 +43,7 @@ class CmdLineOptions(object):
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print username and group")
+    parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--list",    dest='list',      action="store",       default = None,           help="show/describe tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
@@ -95,6 +96,7 @@ def main():
   queryB = None
   headerA = None
   headerB = None
+  statA = None
 
   # debug
   if args.list:
@@ -126,13 +128,20 @@ def main():
   # search by username
   if args.user:
     if args.execrun:
-      queryA = ExecRunCountbyUser(cursor)
-      headerA = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
+      if args.jobs:
+        queryA = ExecRunListbyUser(cursor)
+        headerA = "\nFirst %s executables used by %s\n" % (str(args.num), args.user)
+      else:
+        queryA = ExecRunCountbyUser(cursor)
+        headerA = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
     else:
       queryA = ModuleCountbyUser(cursor)
       headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
     queryA.build(args, startdate_t, enddate_t)
-    resultA = queryA.report_by(args)
+    if args.jobs:
+      resultA, statA = queryA.report_by(args)
+    else:
+      resultA = queryA.report_by(args)
 
   if not resultA:
     args.username = True if args.group else args.username
@@ -147,6 +156,9 @@ def main():
       if args.username:
         queryA = UserCountbyExecRun(cursor)
         headerA = "\nTop %s '%s' excutables by users\n" % (str(args.num), args.sql)
+      elif args.jobs:
+        queryA = ExecRunListbyName(cursor)
+        headerA = "\nFirst %s '%s' excutables sorted by date\n" % (str(args.num), args.sql)
       else:
         queryA = ExecRunCountbyName(cursor)
         headerA = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.sql, args.sort)
@@ -159,7 +171,10 @@ def main():
 
     if queryA:
       queryA.build(args, startdate_t, enddate_t)
-      resultA = queryA.report_by(args)
+      if args.jobs:
+        resultA, statA = queryA.report_by(args)
+      else:
+        resultA = queryA.report_by(args)
 
     if queryB:
       queryB.build(args, startdate_t, enddate_t)
@@ -173,6 +188,10 @@ def main():
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
+    print()
+
+  if statA:
+    print("Number of entries: %d" % statA['num'])
     print()
 
   if resultB:
