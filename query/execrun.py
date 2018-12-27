@@ -56,9 +56,11 @@ class ExecRunCountbyName:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
-      #resultA.append(["%.2f" % entryT['corehours'],  "%d" % entryT['n_jobs'] , "%d" % entryT['n_users'],  "%d" % entryT['n_gpus'], entryT['executables'] + " (%s)" % entryT['modules']])
     
-    return resultA
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]
 
 class ExecRunCountbyUser:
   def __init__(self, cursor):
@@ -79,6 +81,7 @@ class ExecRunCountbyUser:
     user
     from xalt_run where syshost like %s
     and user like %s
+    and exec_path like %s
     and date >= %s and date <= %s
     """ + \
     has_gpu + \
@@ -86,7 +89,7 @@ class ExecRunCountbyUser:
     group by executables
     """
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.user, startdate, enddate))
+    cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
     for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, executables, user in resultA:
@@ -115,6 +118,8 @@ class ExecRunCountbyUser:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
-      #resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'],  entryT['executables'] + " (%s)" % (entryT['modules'])])
     
-    return resultA
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]

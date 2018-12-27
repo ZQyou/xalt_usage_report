@@ -97,6 +97,7 @@ def main():
   headerA = None
   headerB = None
   statA = None
+  statB = None
 
   # debug
   if args.list:
@@ -138,10 +139,7 @@ def main():
       queryA = ModuleCountbyUser(cursor)
       headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
     queryA.build(args, startdate_t, enddate_t)
-    if args.jobs:
-      resultA, statA = queryA.report_by(args)
-    else:
-      resultA = queryA.report_by(args)
+    resultA, statA = queryA.report_by(args)
 
   if not resultA:
     args.username = True if args.group else args.username
@@ -171,14 +169,11 @@ def main():
 
     if queryA:
       queryA.build(args, startdate_t, enddate_t)
-      if args.jobs:
-        resultA, statA = queryA.report_by(args)
-      else:
-        resultA = queryA.report_by(args)
+      resultA, statA = queryA.report_by(args)
 
     if queryB:
       queryB.build(args, startdate_t, enddate_t)
-      resultB = queryA.report_by(args)
+      resultB, statB = queryB.report_by(args)
 
   if resultA:
     print("--------------------------------------------")
@@ -191,7 +186,14 @@ def main():
     print()
 
   if statA:
-    print("Number of entries: %d" % statA['num'])
+    num_unlist = statA['num'] - int(args.num)
+    if num_unlist > 0:
+      print("Unlisted entries: %d" % num_unlist)
+    print("Total entries: %d" % statA['num'])
+    if 'jobs' in statA:
+      print("Total jobs: %d" % statA['jobs'])
+    if 'corehours' in statA:
+      print("Total corehours: %.2f" % statA['corehours'])
     print()
 
   if resultB:
@@ -199,6 +201,17 @@ def main():
     print(headerB)
     bt = BeautifulTbl(tbl=resultB, gap = 2)
     print(bt.build_tbl());
+    print()
+
+  if statB:
+    num_unlist = statB['num'] - int(args.num)
+    if num_unlist > 0:
+      print("Unlisted entries: %d" % num_unlist)
+    print("Total entries: %d" % statB['num'])
+    if 'jobs' in statB:
+      print("Total jobs: %d" % statB['jobs'])
+    if 'corehours' in statB:
+      print("Total corehours: %.2f" % statB['corehours'])
     print()
 
 if ( __name__ == '__main__'): main()

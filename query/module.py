@@ -54,7 +54,10 @@ class ModuleCountbyName:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
     
-    return resultA
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]
 
 class ModuleCountbyUser:
   def __init__(self, cursor):
@@ -74,6 +77,7 @@ class ModuleCountbyUser:
     user    
     from xalt_run where syshost like %s
     and user like %s
+    and module_name like %s
     and date >= %s and date <= %s and  module_name is not null
     """ + \
     has_gpu + \
@@ -81,7 +85,7 @@ class ModuleCountbyUser:
     group by modules
     """
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.user, startdate, enddate))
+    cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
     for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, user in resultA:
@@ -109,4 +113,7 @@ class ModuleCountbyUser:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
     
-    return resultA
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]

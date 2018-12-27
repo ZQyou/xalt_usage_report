@@ -67,7 +67,10 @@ class UserCountbyModule:
         group = get_osc_group(entryT['usernames'])
         resultA[-1].insert(-1, group)
     
-    return resultA
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]
 
 class UserCountbyExecRun:
   def __init__(self, cursor):
@@ -131,5 +134,7 @@ class UserCountbyExecRun:
         resultA[-1].append(group)
       resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
     
-    return resultA
-
+    statA = {'num': len(sortA),
+             'corehours': sum([x['corehours'] for x in sortA]),
+             'jobs': sum([x['n_jobs'] for x in sortA])}
+    return [resultA, statA]
