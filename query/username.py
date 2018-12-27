@@ -87,7 +87,7 @@ class UserCountbyExecRun:
     module_name                         as modules,
     user                                as usernames
     from xalt_run where syshost like %s
-    and LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) like %s
+    and exec_path like %s
     and date >= %s and date <= %s
     """ + \
     has_gpu + \
