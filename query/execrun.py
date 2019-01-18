@@ -10,13 +10,14 @@ class ExecRunCountbyName:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     COUNT(DISTINCT(user))               as n_users,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
-    exec_path                           as executables
+    exec_path                           as executables,
+    date
     from xalt_run where syshost like %s
     and exec_path like %s
     and date >= %s and date <= %s
@@ -29,7 +30,7 @@ class ExecRunCountbyName:
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_users, n_gpus, n_cores, n_thds, modules, executables in resultA:
+    for corehours, n_jobs, n_users, n_gpus, n_cores, n_thds, modules, executables, date in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_users'   : n_users,
@@ -72,13 +73,13 @@ class ExecRunCountbyUser:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
     exec_path                           as executables,
-    user
+    user, date
     from xalt_run where syshost like %s
     and user like %s
     and exec_path like %s
@@ -92,7 +93,7 @@ class ExecRunCountbyUser:
     cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, executables, user in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, executables, user, date in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,

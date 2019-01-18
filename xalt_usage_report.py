@@ -37,7 +37,7 @@ class CmdLineOptions(object):
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="report module usage")
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
-    parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="sql search pattern used with --module and --execrun; use '%%' as wildcard")
+    parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="sql search pattern along with --module and --execrun; use '%%' as wildcard")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = "corehours",    help="sort by corehours (default) | n_users | n_jobs")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")

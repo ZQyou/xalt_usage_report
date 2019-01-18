@@ -10,12 +10,13 @@ class ModuleCountbyName:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     COUNT(DISTINCT(user))               as n_users,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
-    module_name                         as modules
+    module_name                         as modules,
+    date
     from xalt_run where syshost like %s
     and module_name like %s
     and date >= %s and date <= %s and  module_name is not null
@@ -28,7 +29,7 @@ class ModuleCountbyName:
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_users, n_gpus, n_cores, n_thds, modules in resultA:
+    for corehours, n_jobs, n_users, n_gpus, n_cores, n_thds, modules, date in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_users'   : n_users,
@@ -69,12 +70,12 @@ class ModuleCountbyUser:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
-    user    
+    user, date
     from xalt_run where syshost like %s
     and user like %s
     and module_name like %s
@@ -88,7 +89,7 @@ class ModuleCountbyUser:
     cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, user in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, user, date in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,

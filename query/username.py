@@ -18,12 +18,13 @@ class UserCountbyModule:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
-    user                                as usernames
+    user                                as usernames,
+    date
     from xalt_run where syshost like %s
     and module_name like %s
     and date >= %s and date <= %s and  module_name is not null
@@ -36,7 +37,7 @@ class UserCountbyModule:
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, usernames in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, usernames, date in resultA:
       entryT = { 'corehours' : corehours,
                  'n_jobs'    : n_jobs,
                  'n_gpus'    : n_gpus,
@@ -82,13 +83,14 @@ class UserCountbyExecRun:
     query = """
     SELECT 
     ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    count(date)                         as n_jobs,
+    COUNT(DISTINCT(job_id))             as n_jobs,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     exec_path                           as executables,
     module_name                         as modules,
-    user                                as usernames
+    user                                as usernames,
+    date
     from xalt_run where syshost like %s
     and exec_path like %s
     and date >= %s and date <= %s
@@ -101,7 +103,7 @@ class UserCountbyExecRun:
     cursor.execute(query, (args.syshost, '%'+args.sql+'%', startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for corehours, n_jobs, n_gpus, n_cores, n_thds, executables, modules, usernames in resultA:
+    for corehours, n_jobs, n_gpus, n_cores, n_thds, executables, modules, usernames, date in resultA:
       entryT = { 'corehours'   : corehours,
                  'n_jobs'      : n_jobs,
                  'n_gpus'      : n_gpus,

@@ -68,6 +68,7 @@ class ExecRunListbyUser:
     query = """
     SELECT 
     date                                as date,
+    job_id                              as job_id,
     ROUND(run_time*num_cores*num_threads/3600,2) as corehours,
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
@@ -85,8 +86,9 @@ class ExecRunListbyUser:
     cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
     modA   = self.__modA
-    for date, corehours, n_gpus, n_cores, n_thds, modules, executables, user in resultA:
+    for date, job_id,  corehours, n_gpus, n_cores, n_thds, modules, executables, user in resultA:
       entryT = { 'date'      : date,
+                 'job_id'    : job_id,
                  'corehours' : corehours,
                  'n_gpus'    : n_gpus,
                  'n_cores'   : n_cores,
@@ -97,7 +99,7 @@ class ExecRunListbyUser:
 
   def report_by(self, args):
     resultA = []
-    header = ["Date", "CoreHrs", "# GPUs", "# Cores", "# Threads", "ExecPath"]
+    header = ["Date", "JobID", "CoreHrs", "# GPUs", "# Cores", "# Threads", "ExecPath"]
     hline  = map(lambda x: "-"*len(x), header)
     resultA.append(header)
     resultA.append(hline)
@@ -105,8 +107,8 @@ class ExecRunListbyUser:
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter('date'), reverse=False)
     num = min(int(args.num), len(sortA))
-    fmtT = ["%s", "%.2f", "%d", "%d", "%d"]
-    orderT = ['date', 'corehours', 'n_gpus', 'n_cores', 'n_thds']
+    fmtT = ["%s", "%s", "%.2f", "%d", "%d", "%d"]
+    orderT = ['date', 'job_id', 'corehours', 'n_gpus', 'n_cores', 'n_thds']
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
