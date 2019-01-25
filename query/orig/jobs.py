@@ -115,7 +115,6 @@ class ExecRunListbyUser:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
-      #resultA.append(["%.2f" % entryT['corehours'], "%d" % entryT['n_jobs'], "%d" % entryT['n_gpus'],  entryT['executables'] + " (%s)" % (entryT['modules'])])
 
     statA = {'num': len(sortA),
              'corehours': sum([x['corehours'] for x in sortA])}

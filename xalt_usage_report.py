@@ -39,13 +39,13 @@ class CmdLineOptions(object):
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="sql search pattern along with --module and --execrun; use '%%' as wildcard")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = "corehours",    help="sort by corehours (default) | n_users | n_jobs")
+    parser.add_argument("--sort",    dest='sort',      action="store",       default = "corehours",    help="sort by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print username and group")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
-    parser.add_argument("--list",    dest='list',      action="store",       default = None,           help="show/describe tables")
+    parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
@@ -100,10 +100,10 @@ def main():
   statB = None
 
   # debug
-  if args.list:
-    if args.list != "tables":
+  if args.show:
+    if args.show != "tables":
       resultA = describe_table(cursor, args)
-      headerA = "\nDescribe the table '%s'\n" % args.list
+      headerA = "\nDescribe the table '%s'\n" % args.show
     else:
       resultA = show_tables(cursor)
       headerA = "\nAvailable tables in database\n"
@@ -112,68 +112,26 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
   
-  # search by module/executable sql pattern
-# if args.sql == None:
-#   if args.module:
-#     queryA = ModuleExec(cursor)
-#     headerA = "\nTop %s modules sorted by %s\n" % (str(args.num), args.sort)
-#     queryA.build(args, startdate_t, enddate_t)
-#     resultA = queryA.report_by(args, args.sort)
-#   if args.execrun:
-#     queryA = ExecRun(cursor)
-#     headerA = "\nTop %s executables sorted by %s\n" % (str(args.num), args.sort)
-#     queryA.build(args, startdate_t, enddate_t)
-#     resultA, sumCH = queryA.report_by(args, args.sort)
-# else:
-  
   # search by username
-  if args.user:
-    if args.execrun:
-      if args.jobs:
-        queryA = ExecRunListbyUser(cursor)
-        headerA = "\nFirst %s executables used by %s\n" % (str(args.num), args.user)
-      else:
-        queryA = ExecRunCountbyUser(cursor)
-        headerA = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
-    else:
-      queryA = ModuleCountbyUser(cursor)
-      headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
+  if args.execrun:
+    queryA = ExecRun(cursor)
     queryA.build(args, startdate_t, enddate_t)
-    resultA, statA = queryA.report_by(args)
+    headerA, resultA, statA = queryA.report_by(args)
+  
+  if args.module:
+    queryA = Module(cursor)
+    queryA.build(args, startdate_t, enddate_t)
+    headerA, resultA, statA = queryA.report_by(args)
 
   if not resultA:
-    args.username = True if args.group else args.username
-    if args.module:
-      if args.username: 
-        queryA = UserCountbyModule(cursor)
-        headerA = "\nTop %s '%s' modules used by users\n" % (str(args.num), args.sql)
-      else: 
-        queryA = ModuleCountbyName(cursor)
-        headerA = "\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.sql, args.sort)
-    if args.execrun:
-      if args.username:
-        queryA = UserCountbyExecRun(cursor)
-        headerA = "\nTop %s '%s' excutables by users\n" % (str(args.num), args.sql)
-      elif args.jobs:
-        queryA = ExecRunListbyName(cursor)
-        headerA = "\nFirst %s '%s' excutables sorted by date\n" % (str(args.num), args.sql)
-      else:
-        queryA = ExecRunCountbyName(cursor)
-        headerA = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.sql, args.sort)
-
-    if not queryA:
-      queryA = ModuleCountbyName(cursor)
-      headerA = "\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.sql, args.sort)
-      queryB = ExecRunCountbyName(cursor)
-      headerB = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.sql, args.sort)
-
+    queryA = Module(cursor)
+    queryB = ExecRun(cursor)
     if queryA:
       queryA.build(args, startdate_t, enddate_t)
-      resultA, statA = queryA.report_by(args)
-
+      headerA, resultA, statA = queryA.report_by(args)
     if queryB:
       queryB.build(args, startdate_t, enddate_t)
-      resultB, statB = queryB.report_by(args)
+      headerB, resultB, statB = queryB.report_by(args)
 
   if resultA:
     print("--------------------------------------------")

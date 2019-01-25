@@ -1,120 +1,111 @@
 from operator import itemgetter
+from .util import get_osc_group
 
-class ModuleCountbyName:
+def ModuleFormat(args):
+  headerA = "\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.sql, args.sort)
+  headerT = ["CoreHrs", "# Jobs", "# Users", "# GPUs", "# Cores", "# Threads", "Modules"]
+  fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%d", "%s"]
+  orderT  = ['corehours', 'jobs', 'users', 'n_gpus', 'n_cores', 'n_thds', 'modules']
+  if args.username:
+    headerA = "\nTop %s modules used by users\n" % (str(args.num))
+    headerT = ["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "Username", "Modules"]
+    fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%s", "%s"]
+    orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds', 'users', 'modules']
+  if args.user:
+    headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
+    headerT = ["CoreHrs", "# Jobs", "# GPUs", "# CoreHrs", "# Threads", "Modules"]
+    fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%s"]
+    orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds', 'modules']
+  if args.jobs:
+    headerA = "\nFirst %s '%s' module jobs sorted by %s\n" % (str(args.num), args.sql, args.sort)
+    if args.user:
+      headerA = "\nFirst %s '%s' module jobs used by %s\n" % (str(args.num), args.sql, args.user)
+    headerT = ["Date", "JobID", "CoreHrs", "# GPUs", "# Cores", "# Threads", "Modules"]
+    fmtT    = ["%s", "%s", "%.2f", "%d", "%d", "%d", "%s"]
+    orderT  = ['date', 'jobs', 'corehours', 'n_gpus', 'n_cores', 'n_thds', 'modules']
+  return [headerA, headerT, fmtT, orderT]
+
+
+class Module:
   def __init__(self, cursor):
     self.__modA  = []
     self.__cursor = cursor
 
   def build(self, args, startdate, enddate):
-    has_gpu = "and num_gpus > 0" if args.gpu else ""
-    query = """
-    SELECT 
-    ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    COUNT(DISTINCT(job_id))             as n_jobs,
-    COUNT(DISTINCT(user))               as n_users,
+    select_runtime = "ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours, "
+    select_jobs  = "COUNT(DISTINCT(job_id)) as n_jobs, "
+    select_user  = "COUNT(DISTINCT(user)) as n_users, "
+    search_user  = ""
+    search_gpu   = ""
+    group_by     = "group by modules"
+    if args.user or args.username:
+      select_user = "user, "
+      if args.user:
+        search_user = "and user like '%s'" % args.user
+      if args.username:
+        group_by = "group by user, modules"
+
+    if args.jobs:
+      select_runtime = "ROUND(run_time*num_cores*num_threads/3600,2) as corehours, "
+      select_user = "user, "
+      select_jobs = "job_id, "
+      group_by = ""
+      args.sort = 'date' if args.sort == 'corehours' else args.sort
+    
+    if args.gpu:
+      search_gpu  = "and num_gpus > 0"
+
+    query = """ SELECT """ + \
+    select_runtime + \
+    select_jobs + \
+    select_user + \
+    """
     num_gpus                            as n_gpus,
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
     date
     from xalt_run where syshost like %s
-    and module_name like %s
-    and date >= %s and date <= %s and  module_name is not null
     """ + \
-    has_gpu +\
+    search_user + \
     """
-    group by modules
-    """
+    and module_name like %s
+    and date >= %s and date <= %s and module_name is not null
+    """ + \
+    search_gpu + \
+    group_by
+
     cursor  = self.__cursor
     cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
     resultA = cursor.fetchall()
-    modA   = self.__modA
-    for corehours, n_jobs, n_users, n_gpus, n_cores, n_thds, modules, date in resultA:
+    modA = self.__modA
+    for corehours, jobs, users, n_gpus, n_cores, n_thds, modules, date in resultA:
       entryT = { 'corehours' : corehours,
-                 'n_jobs'    : n_jobs,
-                 'n_users'   : n_users,
+                 'jobs'      : jobs,
+                 'users'     : users,
                  'n_gpus'    : n_gpus,
                  'n_cores'   : n_cores,
                  'n_thds'    : n_thds,
-                 'modules'   : modules }
+                 'modules'   : modules,
+                 'date'      : date }
       modA.append(entryT)
 
   def report_by(self, args):
     resultA = []
-    header = ["CoreHrs", "# Jobs", "# Users", "# GPUs", "# Cores", "# Threads", "Modules"]
-    hline  = map(lambda x: "-"*len(x), header)
-    resultA.append(header)
+    headerA, headerT, fmtT, orderT = ModuleFormat(args)
+    hline  = map(lambda x: "-"*len(x), headerT)
+    resultA.append(headerT)
     resultA.append(hline)
 
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
-    fmtT = ["%.2f", "%d", "%d", "%d", "%d", "%d", "%s"]
-    orderT = ['corehours', 'n_jobs', 'n_users', 'n_gpus', 'n_cores', 'n_thds', 'modules']
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
     
     statA = {'num': len(sortA),
-             'corehours': sum([x['corehours'] for x in sortA]),
-             'jobs': sum([x['n_jobs'] for x in sortA])}
-    return [resultA, statA]
-
-class ModuleCountbyUser:
-  def __init__(self, cursor):
-    self.__modA  = []
-    self.__cursor = cursor
-
-  def build(self, args, startdate, enddate):
-    has_gpu = "and num_gpus > 0" if args.gpu else ""
-    query = """
-    SELECT 
-    ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours,
-    COUNT(DISTINCT(job_id))             as n_jobs,
-    num_gpus                            as n_gpus,
-    num_cores                           as n_cores,
-    num_threads                         as n_thds,
-    module_name                         as modules,
-    user, date
-    from xalt_run where syshost like %s
-    and user like %s
-    and module_name like %s
-    and date >= %s and date <= %s and  module_name is not null
-    """ + \
-    has_gpu + \
-    """
-    group by modules
-    """
-    cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.user, args.sql, startdate, enddate))
-    resultA = cursor.fetchall()
-    modA   = self.__modA
-    for corehours, n_jobs, n_gpus, n_cores, n_thds, modules, user, date in resultA:
-      entryT = { 'corehours' : corehours,
-                 'n_jobs'    : n_jobs,
-                 'n_gpus'    : n_gpus,
-                 'n_cores'   : n_cores,
-                 'n_thds'    : n_thds,
-                 'modules'   : modules }
-      modA.append(entryT)
-
-  def report_by(self, args):
-    resultA = []
-    header = ["CoreHrs", "# Jobs", "# GPUs", "# CoreHrs", "# Threads", "Modules"]
-    hline  = map(lambda x: "-"*len(x), header)
-    resultA.append(header)
-    resultA.append(hline)
-
-    modA = self.__modA
-    sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
-    num = min(int(args.num), len(sortA))
-    fmtT = ["%.2f", "%d", "%d", "%d", "%d", "%s"]
-    orderT = ['corehours', 'n_jobs', 'n_gpus', 'n_cores', 'n_thds', 'modules']
-    for i in range(num):
-      entryT = sortA[i]
-      resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
-    
-    statA = {'num': len(sortA),
-             'corehours': sum([x['corehours'] for x in sortA]),
-             'jobs': sum([x['n_jobs'] for x in sortA])}
-    return [resultA, statA]
+             'corehours': sum([x['corehours'] for x in sortA])}
+    if not args.jobs:
+        statA['jobs'] = sum([x['jobs'] for x in sortA])
+    return [headerA, resultA, statA]
