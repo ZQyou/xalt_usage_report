@@ -72,7 +72,8 @@ def main():
   if (args.endD is not None):
     enddate = args.endD
   
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(90)).strftime('%Y-%m-%d');
+  # Generate weekly report by default
+  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(7)).strftime('%Y-%m-%d');
   if (args.startD is not None):
     startdate = args.startD
 
@@ -137,7 +138,6 @@ def main():
     print("--------------------------------------------")
     print("XALT QUERY from",startdate,"to",enddate)
     print("--------------------------------------------")
-    print("")
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
@@ -155,7 +155,9 @@ def main():
     print()
 
   if resultB:
-    print("")
+    print("--------------------------------------------")
+    print("XALT QUERY from",startdate,"to",enddate)
+    print("--------------------------------------------")
     print(headerB)
     bt = BeautifulTbl(tbl=resultB, gap = 2)
     print(bt.build_tbl());

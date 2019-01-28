@@ -2,7 +2,7 @@ from operator import itemgetter
 from .util import get_osc_group
 
 def ExecRunFormat(args):
-  headerA = "\nTop %s '%s' executables sorted by %s\n" % (str(args.num), args.sql, args.sort)
+  headerA = "\nTop %s executables sorted by %s\n" % (str(args.num), args.sort)
   headerT = ["CoreHrs", "# Jobs", "# Users", "# GPUs", "# Cores", "# Threads", "ExecPath"]
   fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%d"]
   orderT  = ['corehours', 'jobs', 'users', 'n_gpus', 'n_cores', 'n_thds']
@@ -17,12 +17,18 @@ def ExecRunFormat(args):
     fmtT    = ["%.2f", "%d", "%d", "%d", "%d"]
     orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds']
   if args.jobs:
-    headerA = "\nFirst %s '%s' executable jobs sorted by %s\n" % (str(args.num), args.sql, args.sort)
+    headerA = "\nFirst %s jobs sorted by %s\n" % (str(args.num), args.sort)
     if args.user:
-      headerA = "\nFirst %s '%s' executable jobs used by %s\n" % (str(args.num), args.sql, args.user)
+      headerA = "\nFirst %s jobs used by %s\n" % (str(args.num), args.user)
     headerT = ["Date", "JobID", "CoreHrs", "# GPUs", "# Cores", "# Threads", "ExecPath"]
     fmtT    = ["%s", "%s", "%.2f", "%d", "%d", "%d"]
     orderT  = ['date', 'jobs', 'corehours', 'n_gpus', 'n_cores', 'n_thds']
+
+  headerA += '\n'
+  if args.sql != '%':
+    headerA += '* Search pattern: %s\n' % args.sql
+  headerA += '* CoreHrs: executable runtime x # cores x # threads\n'
+
   return [headerA, headerT, fmtT, orderT]
 
 class ExecRun:

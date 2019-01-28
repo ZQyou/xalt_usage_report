@@ -2,7 +2,7 @@ from operator import itemgetter
 from .util import get_osc_group
 
 def ModuleFormat(args):
-  headerA = "\nTop %s '%s' modules sorted by %s\n" % (str(args.num), args.sql, args.sort)
+  headerA = "\nTop %s  modules sorted by %s\n" % (str(args.num), args.sort)
   headerT = ["CoreHrs", "# Jobs", "# Users", "# GPUs", "# Cores", "# Threads", "Modules"]
   fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%d", "%s"]
   orderT  = ['corehours', 'jobs', 'users', 'n_gpus', 'n_cores', 'n_thds', 'modules']
@@ -11,18 +11,26 @@ def ModuleFormat(args):
     headerT = ["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "Username", "Modules"]
     fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%s", "%s"]
     orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds', 'users', 'modules']
+    if args.group:
+       headerT.insert(-1, "Group")
   if args.user:
     headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
     headerT = ["CoreHrs", "# Jobs", "# GPUs", "# CoreHrs", "# Threads", "Modules"]
     fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%s"]
     orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds', 'modules']
   if args.jobs:
-    headerA = "\nFirst %s '%s' module jobs sorted by %s\n" % (str(args.num), args.sql, args.sort)
+    headerA = "\nFirst %s jobs sorted by %s\n" % (str(args.num), args.sort)
     if args.user:
-      headerA = "\nFirst %s '%s' module jobs used by %s\n" % (str(args.num), args.sql, args.user)
+      headerA = "\nFirst %s jobs used by %s\n" % (str(args.num), args.user)
     headerT = ["Date", "JobID", "CoreHrs", "# GPUs", "# Cores", "# Threads", "Modules"]
     fmtT    = ["%s", "%s", "%.2f", "%d", "%d", "%d", "%s"]
     orderT  = ['date', 'jobs', 'corehours', 'n_gpus', 'n_cores', 'n_thds', 'modules']
+
+  headerA += '\n'
+  if args.sql != '%':
+    headerA += '* Search pattern: %s\n' % args.sql
+  headerA += '* CoreHrs: executable runtime x # cores x # threads\n'
+
   return [headerA, headerT, fmtT, orderT]
 
 
@@ -42,6 +50,7 @@ class Module:
       select_user = "user, "
       if args.user:
         search_user = "and user like '%s'" % args.user
+        args.group = False
       if args.username:
         group_by = "group by user, modules"
 
@@ -51,10 +60,11 @@ class Module:
       select_jobs = "job_id, "
       group_by = ""
       args.sort = 'date' if args.sort == 'corehours' else args.sort
+      args.group = False
     
     if args.gpu:
       search_gpu  = "and num_gpus > 0"
-
+    
     query = """ SELECT """ + \
     select_runtime + \
     select_jobs + \
@@ -103,6 +113,9 @@ class Module:
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
+      if args.group:
+        group = get_osc_group(entryT['users'])
+        resultA[-1].insert(-1, group)
     
     statA = {'num': len(sortA),
              'corehours': sum([x['corehours'] for x in sortA])}
