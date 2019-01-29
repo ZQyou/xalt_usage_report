@@ -41,7 +41,7 @@ class CmdLineOptions(object):
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
-    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage"
+    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
