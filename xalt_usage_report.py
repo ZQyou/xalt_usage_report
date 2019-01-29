@@ -34,16 +34,16 @@ class CmdLineOptions(object):
     parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = "%",            help="syshost")
+    parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage only")
+    parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="printt executable usage only")
+    parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
-    parser.add_argument("--module",  dest='module',    action="store_true",                            help="report module usage")
-    parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
-    parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="sql search pattern along with --module and --execrun; use '%%' as wildcard")
-    parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
-    parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
-    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
-    parser.add_argument("--group",   dest='group',     action="store_true",                            help="print username and group")
-    parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
+    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by corehours (default) | users | jobs | date")
+    parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
+    parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
+    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage"
+    parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
+    parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
@@ -99,6 +99,8 @@ def main():
   headerB = None
   statA = None
   statB = None
+
+  args.username = True if args.group else args.username
 
   # debug
   if args.show:

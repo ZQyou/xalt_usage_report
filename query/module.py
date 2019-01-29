@@ -117,7 +117,7 @@ class Module:
       if args.group:
         group = get_osc_group(entryT['users'])
         resultA[-1].insert(-1, group)
-    
+
     statA = {'num': len(sortA),
              'corehours': sum([x['corehours'] for x in sortA])}
     if not args.jobs:

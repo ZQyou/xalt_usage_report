@@ -11,6 +11,8 @@ def ExecRunFormat(args):
     headerT = ["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "Username", "ExecPath"]
     fmtT    = ["%.2f", "%d", "%d", "%d", "%d", "%s"]
     orderT  = ['corehours', 'jobs', 'n_gpus', 'n_cores', 'n_thds', 'users']
+    if args.group:
+       headerT.insert(-1, "Group")
   if args.user:
     headerA = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
     headerT = ["CoreHrs", "# Jobs", "# GPUs", "# Cores", "# Threads", "ExecPath"]
@@ -47,6 +49,7 @@ class ExecRun:
       select_user = "user, "
       if args.user:
         search_user = "and user like '%s'" % args.user
+        args.group = False
       if args.username:
         group_by = "group by user, executables"
 
@@ -113,6 +116,9 @@ class ExecRun:
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
+      if args.group:
+        group = get_osc_group(entryT['users'])
+        resultA[-1].insert(-1, group)
 
     statA = {'num': len(sortA),
              'corehours': sum([x['corehours'] for x in sortA])}
