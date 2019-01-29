@@ -55,10 +55,12 @@ class ExecRun:
       select_user = "user, "
       select_jobs = "job_id, "
       group_by = ""
-      args.sort = 'date' if args.sort == 'corehours' else args.sort
+      args.sort = 'date' if not args.sort else args.sort
     
     if args.gpu:
       search_gpu  = "and num_gpus > 0"
+
+    args.sort = 'corehours' if not args.sort else args.sort
 
     query = """ SELECT """ + \
     select_runtime + \

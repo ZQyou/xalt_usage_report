@@ -39,7 +39,7 @@ class CmdLineOptions(object):
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="report executable usage")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="sql search pattern along with --module and --execrun; use '%%' as wildcard")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = "corehours",    help="sort by corehours (default) | users | jobs | date")
+    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print username and group")
@@ -109,7 +109,7 @@ def main():
       resultA = show_tables(cursor)
       headerA = "\nAvailable tables in database\n"
   if args.data:
-    resultA = select_data(cursor, args, startdate_t, enddate_t)
+    resultA = xalt_select_data(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
   
