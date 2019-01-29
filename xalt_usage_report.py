@@ -44,7 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
-    parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
+    parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full SQL command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")

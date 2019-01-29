@@ -29,7 +29,7 @@ def ModuleFormat(args):
   headerA += '\n'
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
-  headerA += '* CoreHrs: executable runtime x # cores x # threads\n'
+  headerA += '* WARNING: CoreHrs is executable walltime x # cores x # threads, not actual CPU utilization\n'
 
   return [headerA, headerT, fmtT, orderT]
 
