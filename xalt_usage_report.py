@@ -15,8 +15,6 @@ dirNm = os.environ.get("OSC_XALT_DIR","./")
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "libexec")))
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "site")))
 
-from BeautifulTbl      import BeautifulTbl
-
 from query import *
 from report import *
 

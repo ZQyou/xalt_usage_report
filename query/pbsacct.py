@@ -14,9 +14,15 @@ def SoftwareFormat(args):
     orderT  = ['corehours', 'nodehours', 'jobs', 'software']
   if args.jobs:
     headerA = "\nFirst %s jobs sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
+    if args.user:
+      headerA = "\nFirst %s jobs used by %s on %s\n" % (str(args.num), args.user, args.syshost)
     headerT = ["Date", "JobID", "CoreHrs", "NodeHrs", "User", "Group", "Account", "Software"]
     fmtT    = ["%s", "%s", "%.2f", "%.2f", "%s", "%s", "%s", "%s"]
     orderT  = ['date', 'jobs', 'corehours', 'nodehours', 'users', 'groups', 'accounts', 'software']
+
+  headerA += '\n'
+  if args.sql != '%':
+    headerA += '* Search pattern: %s\n' % args.sql
 
   return [headerA, headerT, fmtT, orderT]
 
