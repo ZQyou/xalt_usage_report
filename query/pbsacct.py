@@ -7,6 +7,11 @@ def SoftwareFormat(args):
   headerT = ["CoreHrs", "NodeHrs", "# Jobs", "# Users", "# Groups", "# Accounts", "Software"]
   fmtT    = ["%.2f", "%.2f", "%d", "%d", "%d", "%d", "%s"]
   orderT  = ['corehours', 'nodehours', 'jobs', 'users', 'groups', 'accounts', 'software']
+  if args.username:
+    headerA = "\nTop %s software used by users on %s\n" % (str(args.num), args.syshost)
+    headerT = ["CoreHrs", "NodeHrs", "# Jobs", "User", "Group", "Account", "Software"]
+    fmtT    = ["%.2f", "%.2f", "%d", "%s", "%s", "%s", "%s"]
+    orderT  = ['corehours', 'nodehours', 'jobs', 'users', 'groups', 'accounts', 'software']
   if args.user:
     headerA = "\nTop %s executables used by %s on %s\n" % (str(args.num), args.user, args.syshost)
     headerT = ["CoreHrs", "NodeHrs", "# Jobs", "Software"]
@@ -45,9 +50,12 @@ class Software:
     search_user  = ""
     group_by     = "group by sw_app"
 
-    if args.user:
+    if args.user or args.username:
       select_user  = "username, groupname, account, "
-      search_user = "and username like '%s'" % args.user
+      if args.user:
+        search_user = "and username like '%s'" % args.user
+      if args.username:
+        group_by = "group by username, groupname, account, sw_app"
 
     if args.jobs:
       select_runtime = """
