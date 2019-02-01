@@ -39,7 +39,7 @@ class ExecRun:
     self.__cursor = cursor
 
   def build(self, args, startdate, enddate):
-    select_runtime = "ROUND(SUM(run_time*num_cores*num_threads/3600),2) as corehours, "
+    select_runtime = "ROUND(SUM(run_time*num_cores*num_threads)/3600,2) as corehours, "
     select_jobs  = "COUNT(DISTINCT(job_id)) as n_jobs, "
     select_user  = "COUNT(DISTINCT(user)) as n_users, "
     search_user  = ""

@@ -11,7 +11,6 @@ try:
 except:
   import ConfigParser as configparser
 
-from scraper import BeautifulTbl
 from query import *
 
 syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
@@ -99,11 +98,17 @@ def main():
     resultA = pbsacct_select_jobs(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
+
+  if not resultA:
+    queryA = Software(cursor)
+    queryA.build(args, startdate_t, enddate_t)
+    headerA, resultA, statA = queryA.report_by(args)
+
   
   if resultA:
-#   print("--------------------------------------------")
-#   print("XALT QUERY from",startdate,"to",enddate)
-#   print("--------------------------------------------")
+    print("--------------------------------------------")
+    print("PBSACCT QUERY from",startdate,"to",enddate)
+    print("--------------------------------------------")
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
