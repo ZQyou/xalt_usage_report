@@ -21,13 +21,15 @@ def SoftwareFormat(args):
     headerA = "\nFirst %s jobs sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
     if args.user:
       headerA = "\nFirst %s jobs used by %s on %s\n" % (str(args.num), args.user, args.syshost)
-    headerT = ["Date", "JobID", "CoreHrs", "NodeHrs", "User", "Group", "Account", "Software"]
-    fmtT    = ["%s", "%s", "%.2f", "%.2f", "%s", "%s", "%s", "%s"]
-    orderT  = ['date', 'jobs', 'corehours', 'nodehours', 'users', 'groups', 'accounts', 'software']
+    headerT = ["Start Date", "JobID", "Jobname", "CoreHrs", "NodeHrs", "# CPU", "User", "Group", "Account", "Software"]
+    fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%s", "%s", "%s", "%s", "%s"]
+    orderT  = ['date', 'jobs', 'jobname', 'corehours', 'nodehours', 'nproc',  'users', 'groups', 'accounts', 'software']
 
   headerA += '\n'
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
+  if args.host:
+    headerA += '* on Host: %s\n' % args.host
 
   return [headerA, headerT, fmtT, orderT]
 
@@ -48,12 +50,16 @@ class Software:
     COUNT(DISTINCT(account))            as n_accounts,
     """
     search_user  = ""
+    search_host  = ""
     group_by     = "group by sw_app"
+
+    if args.host:
+      search_host = "and hostlist like '%s%s%s' " % ('%%', args.host, '%%')
 
     if args.user or args.username:
       select_user  = "username, groupname, account, "
       if args.user:
-        search_user = "and username like '%s'" % args.user
+        search_user = "and username like '%s' " % args.user
       if args.username:
         group_by = "group by username, groupname, account, sw_app"
 
@@ -63,7 +69,8 @@ class Software:
       ROUND(walltime_sec*nodect/3600,2)  as nodehours,
       """
       select_user  = "username, groupname, account, "
-      select_jobs = "jobid, "
+      select_jobs = "SUBSTRING_INDEX(jobid, \".\", 1), "
+      #select_jobs = "jobid, "
       group_by = ""
       args.sort    = 'date' if not args.sort else args.sort
 
@@ -74,27 +81,33 @@ class Software:
     select_jobs + \
     select_user + \
     """
+    nproc,
+    jobname,
     sw_app                              as software,
     start_ts
     from Jobs where system like %s
     and sw_app like %s
     """ + \
     search_user + \
+    search_host + \
     " and start_ts >= %s and start_ts <= %s " % (startdate, enddate) + \
     group_by
+    #print(query)
 
     cursor  = self.__cursor
     cursor.execute(query, (args.syshost, args.sql))
     resultA = cursor.fetchall()
     modA = self.__modA
-    for corehours, nodehours, jobs, users, groups, accounts, software, date_ts in resultA:
+    for corehours, nodehours, jobs, users, groups, accounts, nproc, jobname, software, date_ts in resultA:
       entryT = { 'corehours' : corehours,
                  'nodehours' : nodehours,
                  'jobs'      : jobs,
                  'users'     : users,
                  'groups'    : groups,
                  'accounts'  : accounts,
+                 'nproc'     : nproc,
                  'software'  : software,
+                 'jobname'   : jobname,
                  'date'      : datetime.fromtimestamp(date_ts).strftime("%Y-%m-%d %H:%M:%S")}
       modA.append(entryT)
       ### datetime.utcfromtimestamp(date_ts)
@@ -116,3 +129,34 @@ class Software:
     statA = {'num': len(sortA),
              'corehours': sum([x['corehours'] for x in sortA])}
     return [headerA, resultA, statA]
+
+class Job:
+  def __init__(self, cursor):
+    self.__modA  = []
+    self.__cursor = cursor
+
+  def build(self, args):
+    print()
+    items = ['username','groupname','account','jobname','nproc','nodes','queue','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app']
+    query = """ SELECT """ + \
+    ",".join(items) + \
+    """
+    from Jobs where system like %s
+    and SUBSTRING_INDEX(jobid, ".", 1) = %s
+    """
+    #print(query)
+
+    cursor  = self.__cursor
+    cursor.execute(query, (args.syshost, args.jobid))
+    resultA = cursor.fetchall()[0]
+    modA = self.__modA
+    #print(resultA)
+    entryT = {}
+    for i, key in enumerate(items):
+      entryT[key] =  resultA[i]
+    #print(entryT)
+    modA.append(entryT)
+
+  def report_by(self):
+    modA = self.__modA
+    print(modA)

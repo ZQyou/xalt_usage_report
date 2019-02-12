@@ -32,10 +32,12 @@ class CmdLineOptions(object):
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching software; '%%' is SQL wildcard character")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
+    parser.add_argument("--host",    dest='host',      action="store",       default = None,           help="search by hostname")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
+    parser.add_argument("--jobid",   dest='jobid',     action="store",       default = None,           help="search by jobid")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
@@ -96,11 +98,15 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
 
+  if args.jobid:
+    queryA = Job(cursor)
+    queryA.build(args)
+    queryA.report_by()
+
   if not resultA:
     queryA = Software(cursor)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
-
   
   if resultA:
     print("--------------------------------------------")
