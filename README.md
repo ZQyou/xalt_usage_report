@@ -20,3 +20,4 @@ Please note that `CoreHrs` in the report is executable walltime x # cores x # th
 * `--gpu`: print GPU usage 
 * `--user`: user account for matching
 * `--jobs`: print job ids and dates
+* `--csv`: print result in CSV format
