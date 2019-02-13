@@ -42,6 +42,7 @@ class CmdLineOptions(object):
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
+    parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full SQL command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
@@ -133,6 +134,11 @@ def main():
     if queryB:
       queryB.build(args, startdate_t, enddate_t)
       headerB, resultB, statB = queryB.report_by(args)
+
+  if resultA and args.csv:
+    for row in resultA:
+      print(",".join(row))
+    sys.exit(0)
 
   if resultA:
     print("--------------------------------------------")
