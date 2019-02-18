@@ -136,7 +136,8 @@ def main():
       headerB, resultB, statB = queryB.report_by(args)
 
   if resultA and args.csv:
-    for row in resultA:
+    print(",".join(resultA[0]))
+    for row in resultA[2:]:
       print(",".join(row))
     sys.exit(0)
 
