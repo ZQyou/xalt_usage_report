@@ -160,6 +160,7 @@ def main():
       headerB, resultB, statB = queryB.report_by(args)
 
   if resultA and args.csv:
+    print("XALT QUERY from",startdate,"to",enddate)
     print(",".join(resultA[0]))
     for row in resultA[2:]:
       print(",".join(row))

@@ -37,6 +37,7 @@ class CmdLineOptions(object):
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
+    parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--jobid",   dest='jobid',     action="store",       default = None,           help="search by jobid")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
@@ -172,6 +173,13 @@ def main():
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
   
+  if resultA and args.csv:
+    print("PBSACCT QUERY from",startdate,"to",enddate)
+    print(",".join(resultA[0]))
+    for row in resultA[2:]:
+      print(",".join(row))
+    sys.exit(0)
+
   if resultA:
     print("--------------------------------------------")
     print("PBSACCT QUERY from",startdate,"to",enddate)
