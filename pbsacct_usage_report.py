@@ -62,7 +62,8 @@ def main():
   configFn     = os.path.join(PBSTOOLS_ETC_DIR,args.confFn)
   ### test
   if syshost == 'pitzer':
-    configFn = "/apps/software_usage/conf/.db_conf"
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    configFn = os.path.join(script_path,"conf",".db_conf")
   else:
     configFn = os.path.join(os.environ.get("HOME"),".db_conf")
   config.read(configFn)
