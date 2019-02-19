@@ -48,6 +48,7 @@ class CmdLineOptions(object):
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
+    parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
     args = parser.parse_args()
     return args
 
@@ -79,7 +80,29 @@ def main():
   startdate_t = startdate + ' 00:00:00'
   enddate_t = enddate + ' 23:59:59'
 
-  ##### Report #####
+
+  ##### Kmalloc ####
+  if args.kmalloc:
+    import csv
+    timestamps = []
+    hosts = []
+    with open(args.kmalloc, mode='r') as infile:
+      reader = csv.reader(infile)
+      headers = next(reader, None)
+      i_time = headers.index('_time')
+      i_host = headers.index('host')
+      for row in reader:
+        timestamps.append(row[i_time])
+        hosts.append(row[i_host])
+      infile.close()
+
+    print(timestamps)
+    print(hosts)
+
+    sys.exit(0)
+
+
+  ##### Report (original XALT usage report from XALT package) #####
   if args.report:
     print("--------------------------------------------")
     print("XALT REPORT from",startdate,"to",enddate)

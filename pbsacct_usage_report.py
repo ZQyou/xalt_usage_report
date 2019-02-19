@@ -43,6 +43,7 @@ class CmdLineOptions(object):
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
+    parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
     args = parser.parse_args()
     return args
 
@@ -58,7 +59,7 @@ def main():
   config       = configparser.ConfigParser()     
   configFn     = os.path.join(PBSTOOLS_ETC_DIR,args.confFn)
   ### test
-  configFn  = os.path.join(os.environ.get("HOME"),".db_conf")
+  configFn     = os.path.join(os.environ.get("HOME"),".db_conf")
   config.read(configFn)
 
   conn = MySQLdb.connect        \
@@ -85,6 +86,65 @@ def main():
 
   headerA = None
   resultA = None
+
+  #### Kmalloc ####
+  if args.kmalloc:
+    import csv, numpy
+    timestamps = []
+    hosts = []
+    with open(args.kmalloc, mode='r') as infile:
+      reader = csv.reader(infile)
+      headers = next(reader, None)
+      i_time = headers.index('_time')
+      i_host = headers.index('host')
+      for row in reader:
+        timestamps.append(row[i_time])
+        hosts.append(row[i_host])
+      infile.close()
+
+    timestamps.reverse()
+    hosts.reverse()
+    #print(timestamps)
+    u_hosts = numpy.unique(hosts)
+    u_times = []
+    for h in u_hosts:
+      u_times.append(timestamps[hosts.index(h)])
+
+    #print(u_hosts)
+    #print(u_times)
+    
+    for i, t in enumerate(u_times):
+      enddate = t.split('T')[0]
+      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(4)).strftime("%Y-%m-%d")
+      startdate_t = startdate + "T00:00:00"
+      enddate_t = t.split('.')[0]
+      startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
+      enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
+
+      args.host = u_hosts[i]
+      if args.host[0] == 'p':
+        args.syshost = 'pitzer'
+      elif args.host[0] == 'o':
+        args.syshost = 'owens'
+      elif args.host[0] == 'r':
+        args.syshost = 'ruby'
+      else:
+        sys.exit(1)
+      queryA = Software(cursor)
+      queryA.build(args, startdate_t, enddate_t)
+      headerA, resultA, statA = queryA.report_by(args)
+
+      if resultA:
+        print("--------------------------------------------")
+        print("PBSACCT QUERY from",startdate,"to",enddate)
+        print("--------------------------------------------")
+        print(headerA)
+        bt = BeautifulTbl(tbl=resultA, gap = 2)
+        print(bt.build_tbl());
+        print()
+
+    sys.exit(0)
+
   # debug
   if args.show:
     if args.show != "tables":
