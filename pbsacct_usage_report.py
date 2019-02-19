@@ -60,7 +60,10 @@ def main():
   config       = configparser.ConfigParser()     
   configFn     = os.path.join(PBSTOOLS_ETC_DIR,args.confFn)
   ### test
-  configFn     = os.path.join(os.environ.get("HOME"),".db_conf")
+  if syshost == 'pitzer':
+    configFn = "/apps/software_usage/conf/.db_conf"
+  else:
+    configFn = os.path.join(os.environ.get("HOME"),".db_conf")
   config.read(configFn)
 
   conn = MySQLdb.connect        \
