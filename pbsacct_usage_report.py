@@ -44,6 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
     parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
+    parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
     args = parser.parse_args()
     return args
 
@@ -74,7 +75,7 @@ def main():
     enddate = args.endD
   
   # Generate weekly report by default
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(7)).strftime("%Y-%m-%d")
+  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
   if args.startD is not None:
     startdate = args.startD
 
@@ -115,7 +116,7 @@ def main():
     
     for i, t in enumerate(u_times):
       enddate = t.split('T')[0]
-      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(4)).strftime("%Y-%m-%d")
+      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
       startdate_t = startdate + "T00:00:00"
       enddate_t = t.split('.')[0]
       startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
