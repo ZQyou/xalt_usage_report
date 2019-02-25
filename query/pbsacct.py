@@ -29,9 +29,11 @@ def SoftwareFormat(args):
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
   if args.host:
-    headerA += '* on Host: %s\n' % args.host
+    headerA += '* Host: %s\n' % args.host
   if args.queue:
-    headerA += '* on Queue: %s\n' % args.queue
+    headerA += '* Queue: %s\n' % args.queue
+  if args.rsvn:
+    headerA += '* Reservation: %s\n' % args.rsvn
 
   return [headerA, headerT, fmtT, orderT]
 
@@ -54,6 +56,7 @@ class Software:
     search_user  = ""
     search_host  = ""
     search_queue = ""
+    search_rsvn  = ""
     group_by     = "group by sw_app"
 
     if args.host:
@@ -61,6 +64,9 @@ class Software:
 
     if args.queue:
       search_queue = "and queue like '%s' " % (args.queue)
+
+    if args.rsvn:
+      search_host = "and nodes like '%s%s%s' " % ('%%', args.rsvn, '%%')
 
     if args.user or args.username:
       select_user  = "username, groupname, account, "
@@ -98,6 +104,7 @@ class Software:
     search_user + \
     search_host + \
     search_queue + \
+    search_rsvn + \
     " and start_ts >= %s and start_ts <= %s " % (startdate, enddate) + \
     group_by
     #print(query)

@@ -30,6 +30,7 @@ class CmdLineOptions(object):
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
     parser.add_argument("--host",    dest='host',      action="store",       default = None,           help="search by hostname")
     parser.add_argument("--queue",   dest='queue',     action="store",       default = None,           help="search by queue: serial | longserial | parallel | longparallel | hugemem")
+    parser.add_argument("--rsvn",    dest='rsvn',      action="store",       default = None,           help="search by reservation: gpu | pfs | ime")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
@@ -93,12 +94,13 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
 
-  #### Software Usage ####
   if args.jobid:
     queryA = Job(cursor)
     queryA.build(args)
     queryA.report_by()
+    sys.exit(0)
 
+  #### Software Usage ####
   if not resultA:
     queryA = Software(cursor)
     queryA.build(args, startdate_t, enddate_t)
