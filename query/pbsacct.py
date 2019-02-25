@@ -30,6 +30,8 @@ def SoftwareFormat(args):
     headerA += '* Search pattern: %s\n' % args.sql
   if args.host:
     headerA += '* on Host: %s\n' % args.host
+  if args.queue:
+    headerA += '* on Queue: %s\n' % args.queue
 
   return [headerA, headerT, fmtT, orderT]
 
@@ -51,10 +53,14 @@ class Software:
     """
     search_user  = ""
     search_host  = ""
+    search_queue = ""
     group_by     = "group by sw_app"
 
     if args.host:
       search_host = "and hostlist like '%s%s%s' " % ('%%', args.host, '%%')
+
+    if args.queue:
+      search_queue = "and queue like '%s' " % (args.queue)
 
     if args.user or args.username:
       select_user  = "username, groupname, account, "
@@ -81,15 +87,17 @@ class Software:
     select_jobs + \
     select_user + \
     """
+    queue, 
     nproc,
     jobname,
-    sw_app                              as software,
+    sw_app as software,
     start_ts
     from Jobs where system like %s
     and sw_app like %s
     """ + \
     search_user + \
     search_host + \
+    search_queue + \
     " and start_ts >= %s and start_ts <= %s " % (startdate, enddate) + \
     group_by
     #print(query)
@@ -98,13 +106,14 @@ class Software:
     cursor.execute(query, (args.syshost, args.sql))
     resultA = cursor.fetchall()
     modA = self.__modA
-    for corehours, nodehours, jobs, users, groups, accounts, nproc, jobname, software, date_ts in resultA:
+    for corehours, nodehours, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:
       entryT = { 'corehours' : corehours,
                  'nodehours' : nodehours,
                  'jobs'      : jobs,
                  'users'     : users,
                  'groups'    : groups,
                  'accounts'  : accounts,
+                 'queue'     : queue,
                  'nproc'     : nproc,
                  'software'  : software,
                  'jobname'   : jobname,

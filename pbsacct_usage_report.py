@@ -6,12 +6,8 @@ import MySQLdb, argparse
 import time
 from datetime import datetime, timedelta
 from pprint import pprint
-try:
-  import configparser
-except:
-  import ConfigParser as configparser
-
 from query import *
+from util import *
 
 syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
 
@@ -33,6 +29,7 @@ class CmdLineOptions(object):
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching software; '%%' is SQL wildcard character")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="search by user account")
     parser.add_argument("--host",    dest='host',      action="store",       default = None,           help="search by hostname")
+    parser.add_argument("--queue",   dest='queue',     action="store",       default = None,           help="search by queue: serial | longserial | parallel | longparallel | hugemem")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
@@ -52,22 +49,8 @@ class CmdLineOptions(object):
 
 def main():
   ##### Configuration #####
-  PBSTOOLS_DIR = os.environ.get("PBSTOOLS_DIR","./")
-  if not os.environ.has_key("PBSTOOLS_DIR"): 
-     PBSTOOLS_DIR = "/usr/local"
-  PBSTOOLS_ETC_DIR = os.path.join(PBSTOOLS_DIR, "etc")
-  
-  args         = CmdLineOptions().execute()
-  config       = configparser.ConfigParser()     
-  configFn     = os.path.join(PBSTOOLS_ETC_DIR,args.confFn)
-  ### test
-  if syshost == 'pitzer':
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    configFn = os.path.join(script_path,"conf",".db_conf")
-  else:
-    configFn = os.path.join(os.environ.get("HOME"),".db_conf")
-  config.read(configFn)
-
+  args    = CmdLineOptions().execute()
+  config  = pbsacct_conf(syshost, args.confFn)
   conn = MySQLdb.connect        \
          (config.get("pbsacct","HOST"), \
           config.get("pbsacct","USER"), \
@@ -95,63 +78,9 @@ def main():
 
   #### Kmalloc ####
   if args.kmalloc:
-    import csv, numpy
-    timestamps = []
-    hosts = []
-    with open(args.kmalloc, mode='r') as infile:
-      reader = csv.reader(infile)
-      headers = next(reader, None)
-      i_time = headers.index('_time')
-      i_host = headers.index('host')
-      for row in reader:
-        timestamps.append(row[i_time])
-        hosts.append(row[i_host])
-      infile.close()
-
-    timestamps.reverse()
-    hosts.reverse()
-    #print(timestamps)
-    u_hosts = numpy.unique(hosts)
-    u_times = []
-    for h in u_hosts:
-      u_times.append(timestamps[hosts.index(h)])
-
-    #print(u_hosts)
-    #print(u_times)
-    
-    for i, t in enumerate(u_times):
-      enddate = t.split('T')[0]
-      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
-      startdate_t = startdate + "T00:00:00"
-      enddate_t = t.split('.')[0]
-      startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
-      enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
-
-      args.host = u_hosts[i]
-      if args.host[0] == 'p':
-        args.syshost = 'pitzer'
-      elif args.host[0] == 'o':
-        args.syshost = 'owens'
-      elif args.host[0] == 'r':
-        args.syshost = 'ruby'
-      else:
-        sys.exit(1)
-      queryA = Software(cursor)
-      queryA.build(args, startdate_t, enddate_t)
-      headerA, resultA, statA = queryA.report_by(args)
-
-      if resultA:
-        print("--------------------------------------------")
-        print("PBSACCT QUERY from",startdate,"to",enddate)
-        print("--------------------------------------------")
-        print(headerA)
-        bt = BeautifulTbl(tbl=resultA, gap = 2)
-        print(bt.build_tbl());
-        print()
-
     sys.exit(0)
 
-  # debug
+  #### Debug ####
   if args.show:
     if args.show != "tables":
       resultA = describe_table(cursor, args)
@@ -164,6 +93,7 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
 
+  #### Software Usage ####
   if args.jobid:
     queryA = Job(cursor)
     queryA.build(args)
