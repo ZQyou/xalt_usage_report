@@ -93,11 +93,7 @@ class Software:
     select_jobs + \
     select_user + \
     """
-    queue, 
-    nproc,
-    jobname,
-    sw_app as software,
-    start_ts
+    queue, nproc, jobname, sw_app, start_ts
     from Jobs where system like %s
     and sw_app like %s
     """ + \
@@ -138,6 +134,19 @@ class Software:
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
+    if args.syslog:
+      resultA = []
+      import numpy
+      date_list = [ x['date'] for x in sortA ] 
+      u_year = numpy.unique(map(lambda x: x.split('-')[0], date_list))
+      u_month = numpy.unique(map(lambda x: x.split('-')[1], date_list))
+      if len(u_year) == 1 and len(u_month) == 1: 
+        for i in range(num):
+          sortA[i]['year'] = u_year[0]
+          sortA[i]['month'] = u_month[0]
+          resultA.append(sortA[i])
+      return resultA
+
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
