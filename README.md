@@ -7,7 +7,7 @@
 
 ## Command-line options
 * `--module`: print module usage only
-* `--executable`: print executable usage only
+* `--execrun`: print executable usage only
 * `--sql`: SQL pattern for matching modules or executables. (`%` is SQL wildcard character)
 * `--start`: start date, e.g. 2018-12-25
 * `--end`: end date
@@ -37,6 +37,9 @@
 * `--sort`: sort the result by corehours (default) | nodehours | users | groups | accounts | jobs | software 
 * `--username`: print user names, accounts and groups instead of # users, # accounts and # groups
 * `--user`: user name for matching
+* `--host`: search by hostname
+* `--queue`: search by queue: serial | lognserial | parallel | longparallel | largeparallel | hugemem
+* `--rsvn`: search by reservation: gpu | pfs | ime
 * `--jobs`: print job ids and dates
 * `--days`: report from now to DAYS back
 * `--csv`: print in CSV format
