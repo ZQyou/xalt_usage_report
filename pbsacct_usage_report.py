@@ -21,7 +21,7 @@ class CmdLineOptions(object):
   def execute(self):
     """ Specify command line arguments and parse the command line"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--confFn",  dest='confFn',    action="store",       default = "pbsacctdb.cfg",help="db name")
+    parser.add_argument("--config",  dest='confFn',    action="store",       default = None,           help="db name")
     parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="syshost")
@@ -44,7 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
     parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
     parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
-    parser.add_argument("--syslog",  dest='syslog',    action="store_true",                            help="register result to syslog")
+    parser.add_argument("--log",     dest='log',       action="store",       default = None,           help="dump the result to log: stdout | syslog")
     args = parser.parse_args()
     return args
 
@@ -80,14 +80,68 @@ def main():
 
   #### Kmalloc ####
   if args.kmalloc:
+    import csv, numpy
+    timestamps = []
+    hosts = []
+    with open(args.kmalloc, mode='r') as infile:
+      reader = csv.reader(infile)
+      headers = next(reader, None)
+      i_time = headers.index('_time')
+      i_host = headers.index('host')
+      for row in reader:
+        timestamps.append(row[i_time])
+        hosts.append(row[i_host])
+      infile.close()
+
+    timestamps.reverse()
+    hosts.reverse()
+    #print(timestamps)
+    u_hosts = numpy.unique(hosts)
+    u_times = []
+    for h in u_hosts:
+      u_times.append(timestamps[hosts.index(h)])
+
+    #print(u_hosts)
+    #print(u_times)
+    
+    for i, t in enumerate(u_times):
+      enddate = t.split('T')[0]
+      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
+      startdate_t = startdate + "T00:00:00"
+      enddate_t = t.split('.')[0]
+      startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
+      enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
+
+      args.host = u_hosts[i]
+      if args.host[0] == 'p':
+        args.syshost = 'pitzer'
+      elif args.host[0] == 'o':
+        args.syshost = 'owens'
+      elif args.host[0] == 'r':
+        args.syshost = 'ruby'
+      else:
+        sys.exit(1)
+      queryA = Software(cursor)
+      queryA.build(args, startdate_t, enddate_t)
+      headerA, resultA, statA = queryA.report_by(args)
+
+      if resultA:
+        print("--------------------------------------------")
+        print("PBSACCT QUERY from",startdate,"to",enddate)
+        print("--------------------------------------------")
+        print(headerA)
+        bt = BeautifulTbl(tbl=resultA, gap = 2)
+        print(bt.build_tbl());
+        print()
+
     sys.exit(0)
 
-  if args.syslog:
+  if args.log:
     queryA = Software(cursor)
     queryA.build(args, startdate_t, enddate_t)
     resultA = queryA.report_by(args)
     #pprint(resultA)
-    syslog_logging(args.syshost, 'pbsacct', resultA, 'syslog')
+    syslog_logging(args.syshost, 'pbsacct', resultA, args.log)
     sys.exit(0)
 
   #### Debug ####
@@ -131,4 +185,5 @@ def main():
     print(bt.build_tbl());
     print()
 
-if ( __name__ == '__main__'): main()
+if __name__ == '__main__':
+  main()

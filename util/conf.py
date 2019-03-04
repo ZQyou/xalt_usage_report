@@ -7,18 +7,16 @@ except:
 
 
 def pbsacct_conf(syshost, confFn):
-  PBSTOOLS_DIR = os.environ.get("PBSTOOLS_DIR","./")
-  if not os.environ.has_key("PBSTOOLS_DIR"): 
-     PBSTOOLS_DIR = "/usr/local"
-  PBSTOOLS_ETC_DIR = os.path.join(PBSTOOLS_DIR, "etc")
-
-  config   = configparser.ConfigParser()     
-  configFn = os.path.join(PBSTOOLS_ETC_DIR, confFn)
-  if syshost == 'pitzer':
+  config  = configparser.ConfigParser()     
+  if not confFn:
     script_path = os.path.dirname(os.path.realpath(__file__))
-    configFn = os.path.join(script_path,"..","conf",".db_conf")
-  else:
-    configFn = os.path.join(os.environ.get("HOME"),".db_conf")
-  config.read(configFn)
+    confFn = os.path.join(script_path,"..","conf",".db_conf")
+  #print("Loading the config file", confFn)
+  config.read(confFn)
 
   return config
+
+if __name__ == '__main__': 
+  syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
+  config = pbsacct_conf(syshost, None)
+  print(config.get("pbsacct","HOST"))

@@ -134,7 +134,7 @@ class Software:
     modA = self.__modA
     sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
-    if args.syslog:
+    if args.log:
       resultA = []
       import numpy
       date_list = [ x['date'] for x in sortA ] 
