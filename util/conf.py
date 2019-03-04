@@ -11,6 +11,11 @@ def pbsacct_conf(syshost, confFn):
   if not confFn:
     script_path = os.path.dirname(os.path.realpath(__file__))
     confFn = os.path.join(script_path,"..","conf",".db_conf")
+    if not os.path.isfile(confFn):
+      if syshost == "pitzer":
+        confFn = os.path.join("/apps/software_usage","conf",".db_conf")
+      elif syshost == "owens":
+        confFn = os.path.join("/usr/local/software_usage","conf",".db_conf")
   #print("Loading the config file", confFn)
   config.read(confFn)
 
