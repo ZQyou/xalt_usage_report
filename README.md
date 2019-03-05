@@ -21,6 +21,16 @@
 * `--days`: report from now to DAYS back
 * `--csv`: print in CSV format
 
+## Use cases
+Get the module usage sorted by \# jobs from now to 2 days back
+```
+xalt_usage_report.py --module --sorted jobs --days 2
+```
+Find what users using lammps
+```
+xalt_usage_report.py --module --sql %lammps% --username
+```
+
 # PBSACCT
 ## Description 
 `pbsacct_usage_report.py` analyzes PBSACCT database and generates a software usage report. By default the script generates a week-to-date report for the cluster where you login. Use following options to filter or change the output.
@@ -44,3 +54,4 @@
 * `--jobs`: print job ids and dates
 * `--days`: report from now to DAYS back
 * `--csv`: print in CSV format
+
