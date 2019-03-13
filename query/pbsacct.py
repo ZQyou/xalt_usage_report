@@ -1,3 +1,4 @@
+from __future__ import print_function
 from operator import itemgetter
 from .util import get_osc_group
 from datetime import datetime
@@ -145,6 +146,8 @@ class Software:
           sortA[i]['year'] = u_year[0]
           sortA[i]['month'] = u_month[0]
           resultA.append(sortA[i])
+      else: 
+          print("Searching across multiple months is not available")
       return resultA
 
     for i in range(num):

@@ -60,80 +60,15 @@ def main():
           config.get("pbsacct","DB"))
   cursor = conn.cursor()
 
-  enddate = time.strftime("%Y-%m-%d")
-  if args.endD is not None:
-    enddate = args.endD
-  
-  # Generate weekly report by default
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
-  if args.startD is not None:
-    startdate = args.startD
-
-  startdate_t = startdate + "T00:00:00"
-  enddate_t = enddate + "T23:59:59"
-  isotimefmt = "%Y-%m-%dT%H:%M:%S"
-  startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
-  enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
+  startdate, enddate, startdate_t, enddate_t = set_timerange(args)
 
   headerA = None
   resultA = None
 
   #### Kmalloc ####
   if args.kmalloc:
-    import csv, numpy
-    timestamps = []
-    hosts = []
-    with open(args.kmalloc, mode='r') as infile:
-      reader = csv.reader(infile)
-      headers = next(reader, None)
-      i_time = headers.index('_time')
-      i_host = headers.index('host')
-      for row in reader:
-        timestamps.append(row[i_time])
-        hosts.append(row[i_host])
-      infile.close()
-
-    timestamps.reverse()
-    hosts.reverse()
-    #print(timestamps)
-    u_hosts = numpy.unique(hosts)
-    u_times = []
-    for h in u_hosts:
-      u_times.append(timestamps[hosts.index(h)])
-
-    #print(u_hosts)
-    #print(u_times)
-    
-    for i, t in enumerate(u_times):
-      enddate = t.split('T')[0]
-      startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
-      startdate_t = startdate + "T00:00:00"
-      enddate_t = t.split('.')[0]
-      startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
-      enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
-
-      args.host = u_hosts[i]
-      if args.host[0] == 'p':
-        args.syshost = 'pitzer'
-      elif args.host[0] == 'o':
-        args.syshost = 'owens'
-      elif args.host[0] == 'r':
-        args.syshost = 'ruby'
-      else:
-        sys.exit(1)
-      queryA = Software(cursor)
-      queryA.build(args, startdate_t, enddate_t)
-      headerA, resultA, statA = queryA.report_by(args)
-
-      if resultA:
-        print("--------------------------------------------")
-        print("PBSACCT QUERY from",startdate,"to",enddate)
-        print("--------------------------------------------")
-        print(headerA)
-        bt = BeautifulTbl(tbl=resultA, gap = 2)
-        print(bt.build_tbl());
-        print()
-
+    _kmalloc = kmalloc(args.kmalloc)
+    _kmalloc.print_by_host(cursor, args)
     sys.exit(0)
 
   if args.log:
@@ -141,6 +76,9 @@ def main():
     queryA.build(args, startdate_t, enddate_t)
     resultA = queryA.report_by(args)
     #pprint(resultA)
+    print("--------------------------------------------")
+    print("PBSACCT QUERY from",startdate,"to",enddate)
+    print("--------------------------------------------")
     syslog_logging(args.syshost, 'pbsacct', resultA, args.log)
     sys.exit(0)
 
