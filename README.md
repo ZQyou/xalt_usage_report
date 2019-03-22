@@ -36,8 +36,9 @@ xalt_usage_report.py --module --sql %lammps% --username
 `pbsacct_usage_report.py` analyzes PBSACCT database and generates a software usage report. By default the script generates a week-to-date report for the cluster where you login. Use following options to filter or change the output.
 
 ## Note for output
-* `CoreHrs`: cput_sec
+* `CPUHrs`: walltime x # procs
 * `NodeHrs`: walltime x # nodes
+* `Efficiency`: cpu_t / (walltime x # procs)
 
 ## Command-line options
 * `--sql`: SQL pattern for matching software. (`%` is SQL wildcard character)
@@ -49,7 +50,7 @@ xalt_usage_report.py --module --sql %lammps% --username
 * `--username`: print user names, accounts and groups instead of # users, # accounts and # groups
 * `--user`: user name for matching
 * `--host`: search by hostname
-* `--queue`: search by queue: serial | lognserial | parallel | longparallel | largeparallel | hugemem
+* `--queue`: search by queue: serial | parallel | lognserial | longparallel | largeparallel | largemem | hugemem
 * `--rsvn`: search by reservation: gpu | pfs | ime
 * `--jobs`: print job ids and dates
 * `--days`: report from now to DAYS back
