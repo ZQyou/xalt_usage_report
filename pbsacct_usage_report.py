@@ -32,7 +32,7 @@ class CmdLineOptions(object):
     parser.add_argument("--host",    dest='host',      action="store",       default = None,           help="search by hostname")
     parser.add_argument("--queue",   dest='queue',     action="store",       default = None,           help="search by queue: serial | longserial | parallel | longparallel | hugemem")
     parser.add_argument("--rsvn",    dest='rsvn',      action="store",       default = None,           help="search by reservation: gpu | pfs | ime")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by corehours (default) | users | jobs | date")
+    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by cpuhours (default) | nodehours | mem | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")

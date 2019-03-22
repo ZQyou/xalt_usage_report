@@ -91,7 +91,7 @@ class Software:
       group_by = ""
       args.sort    = 'date' if not args.sort else args.sort
 
-    args.sort = 'corehours' if not args.sort else args.sort
+    args.sort = 'cpuhours' if not args.sort else args.sort
 
     query = """ SELECT """ + \
     select_runtime + \
@@ -168,7 +168,7 @@ class Software:
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
 
     statA = {'num': len(sortA),
-             'corehours': sum([x['corehours'] for x in sortA])}
+             'cpuhours': sum([x['cpuhours'] for x in sortA])}
     return [headerA, resultA, statA]
 
 class Job:
