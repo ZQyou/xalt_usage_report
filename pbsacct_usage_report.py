@@ -24,6 +24,7 @@ class CmdLineOptions(object):
     parser.add_argument("--config",  dest='confFn',    action="store",       default = None,           help="db name")
     parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
+    parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="search by syshost (default is $LMOD_SYSTEM_NAME)")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report (default is 20)")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching software; '%%' is SQL wildcard character")
@@ -39,10 +40,10 @@ class CmdLineOptions(object):
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
-    parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
-    parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
     parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
-    parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
+    parser.add_argument("--gmetric", dest='gmetric',   action="store",       default = None,           help="ganglia metric in JSON, e.g. mem_s_unreclaimable")
+    parser.add_argument("--webpass", dest='webpass',   action="store",       default = None,           help="password for ganglia access. prompt is default")
+    parser.add_argument("--webuser", dest='webuser',   action="store",       default = None,           help="password for ganglia access. $USER is default")
     parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--log",     dest='log',       action="store",       default = None,           help="dump the result to log: stdout | syslog")
     args = parser.parse_args()
@@ -95,7 +96,12 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
 
-  if args.jobid:
+  if args.jobid and args.gmetric:
+    import getpass
+    if not args.webuser:
+      args.webuser = getpass.getuser()
+    if not args.webpass:
+      args.webpass = getpass.getpass()
     queryA = Job(cursor)
     queryA.build(args)
     queryA.report_by()

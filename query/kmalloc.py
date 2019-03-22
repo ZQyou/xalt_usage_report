@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv, numpy
 import sys, os
 from pbsacct import Software
@@ -56,6 +57,5 @@ class kmalloc(object):
         print("--------------------------------------------")
         print(headerA)
         bt = BeautifulTbl(tbl=resultA, gap = 2)
-        print(bt.build_tbl());
+        print(bt.build_tbl())
         print()
-

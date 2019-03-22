@@ -5,26 +5,26 @@ from datetime import datetime
 
 def SoftwareFormat(args):
   headerA = "\nTop %s software sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
-  headerT = ["CoreHrs", "NodeHrs", "# Jobs", "# Users", "# Groups", "# Accounts", "Software"]
-  fmtT    = ["%.2f", "%.2f", "%d", "%d", "%d", "%d", "%s"]
-  orderT  = ['corehours', 'nodehours', 'jobs', 'users', 'groups', 'accounts', 'software']
+  headerT = ["CPUHrs", "NodeHrs", "EFF", "Mem (MB)", "# Jobs", "# Users", "# Groups", "# Accounts", "Software"]
+  fmtT    = ["%.2f", "%.2f", "%.2f", "%d", "%d", "%d", "%d", "%d", "%s"]
+  orderT  = ['cpuhours', 'nodehours', 'efficiency', 'mem', 'jobs', 'users', 'groups', 'accounts', 'software']
   if args.username:
     headerA = "\nTop %s software used by users on %s\n" % (str(args.num), args.syshost)
-    headerT = ["CoreHrs", "NodeHrs", "# Jobs", "User", "Group", "Account", "Software"]
-    fmtT    = ["%.2f", "%.2f", "%d", "%s", "%s", "%s", "%s"]
-    orderT  = ['corehours', 'nodehours', 'jobs', 'users', 'groups', 'accounts', 'software']
+    headerT = ["CPUHrs", "NodeHrs", "EFF", "Mem (MB)", "# Jobs", "User", "Group", "Account", "Software"]
+    fmtT    = ["%.2f", "%.2f",  "%.2f", "%d", "%d", "%s", "%s", "%s", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'efficiency', 'mem', 'jobs', 'users', 'groups', 'accounts', 'software']
   if args.user:
     headerA = "\nTop %s executables used by %s on %s\n" % (str(args.num), args.user, args.syshost)
-    headerT = ["CoreHrs", "NodeHrs", "# Jobs", "Software"]
-    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
-    orderT  = ['corehours', 'nodehours', 'jobs', 'software']
+    headerT = ["CPUHrs", "NodeHrs", "EFF", "Mem (MB)", "# Jobs", "Software"]
+    fmtT    = ["%.2f", "%.2f", "%.2f", "%d", "%d", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'efficiency', 'mem', 'jobs', 'software']
   if args.jobs:
     headerA = "\nFirst %s jobs sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
     if args.user:
       headerA = "\nFirst %s jobs used by %s on %s\n" % (str(args.num), args.user, args.syshost)
-    headerT = ["Start Date", "JobID", "Jobname", "CoreHrs", "NodeHrs", "# CPU", "User", "Group", "Account", "Software"]
-    fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%s", "%s", "%s", "%s", "%s"]
-    orderT  = ['date', 'jobs', 'jobname', 'corehours', 'nodehours', 'nproc',  'users', 'groups', 'accounts', 'software']
+    headerT = ["Start Date", "JobID", "Jobname", "CPUHrs", "NodeHrs", "EFF", "# CPU", "Mem (MB)", "User", "Group", "Account", "Software"]
+    fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%.2f", "%s", "%d", "%s", "%s", "%s", "%s"]
+    orderT  = ['date', 'jobs', 'jobname', 'cpuhours', 'nodehours', 'efficiency', 'nproc',  'mem', 'users', 'groups', 'accounts', 'software']
 
   headerA += '\n'
   if args.sql != '%':
@@ -45,8 +45,10 @@ class Software:
 
   def build(self, args, startdate, enddate):
     select_runtime = """
+    ROUND(SUM(walltime_sec*nproc)/3600,2)   as cpuhours,
     ROUND(SUM(cput_sec)/3600,2)             as corehours,
     ROUND(SUM(walltime_sec*nodect)/3600,2)  as nodehours,
+    ROUND(SUM(mem_kb)/1024,0)               as mem,
     """
     select_jobs  = "COUNT(DISTINCT(jobid)) as n_jobs, "
     select_user  = """
@@ -78,8 +80,10 @@ class Software:
 
     if args.jobs:
       select_runtime = """
+      ROUND(walltime_sec*nproc/3600,2)   as cpuhours,
       ROUND(cput_sec/3600,2)             as corehours,
       ROUND(walltime_sec*nodect/3600,2)  as nodehours,
+      ROUND(mem_kb/1024,0)               as mem,
       """
       select_user  = "username, groupname, account, "
       select_jobs = "SUBSTRING_INDEX(jobid, \".\", 1), "
@@ -110,9 +114,13 @@ class Software:
     cursor.execute(query, (args.syshost, args.sql))
     resultA = cursor.fetchall()
     modA = self.__modA
-    for corehours, nodehours, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:
-      entryT = { 'corehours' : corehours,
+    for cpuhours, corehours, nodehours, mem, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:
+      efficiency = 0 if cpuhours == 0 else corehours/cpuhours
+      entryT = { 'cpuhours'  : cpuhours,
+                 'corehours' : corehours,
                  'nodehours' : nodehours,
+                 'efficiency': efficiency,
+                 'mem'       : mem,
                  'jobs'      : jobs,
                  'users'     : users,
                  'groups'    : groups,
@@ -164,7 +172,6 @@ class Job:
     self.__cursor = cursor
 
   def build(self, args):
-    print()
     items = ['username','groupname','account','jobname','nproc','nodes','queue','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app']
     query = """ SELECT """ + \
     ",".join(items) + \
@@ -184,6 +191,34 @@ class Job:
       entryT[key] =  resultA[i]
     #print(entryT)
     modA.append(entryT)
+
+    import requests
+    import time
+    params = (
+      ('c', args.syshost.capitalize()),
+      ('h', '%s.ten.osc.edu' % entryT['hostlist'].split('/')[0]),
+      ('r', 'custom'),
+      ('z', 'default'),
+#     ('jr', ''),
+#     ('js', ''),
+#     ('st', '1552513647'),     # time at request
+      ('cs', time.strftime('%m/%d/%Y %H:%M', time.localtime(int(entryT['start_ts'])))),
+      ('ce', time.strftime('%m/%d/%Y %H:%M', time.localtime(int(entryT['end_ts'])))),
+#     ('event', 'hide'),
+#     ('ts', '0'),
+#     ('v', '4722176000'),
+#     ('m', 'mem_s_unreclaimable'),
+      ('m', '%s' % args.gmetric),
+#     ('vl', 'Bytes'),
+#     ('ti', 'SUnreclaim'),
+      ('json', '1'),
+    )
+    response = requests.get('https://ganglia.osc.edu/graph.php', params=params, auth=(args.webuser,args.webpass))
+    print(response.url)
+    #print(response.content)
+    import json
+    json_data = json.loads(response.content)
+    print(json_data[0]['datapoints'])
 
   def report_by(self):
     modA = self.__modA
