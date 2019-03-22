@@ -28,7 +28,8 @@ def SoftwareFormat(args):
 
   headerA += '\n'
   if args.sql != '%':
-    headerA += '* Search pattern: %s\n' % args.sql
+    headerA += '* Search pattern: %s' % args.sql
+    headerA += ' (reverse)\n' if args.rev else '\n'
   if args.host:
     headerA += '* Host: %s\n' % args.host
   if args.queue:
@@ -60,6 +61,8 @@ class Software:
     search_host  = ""
     search_queue = ""
     search_rsvn  = ""
+    search_sw = "and sw_app not like %s" if args.rev else "and sw_app like %s"
+    search_jobname = ""
     group_by     = "group by sw_app"
 
     if args.host:
@@ -77,6 +80,11 @@ class Software:
         search_user = "and username like '%s' " % args.user
       if args.username:
         group_by = "group by username, groupname, account, sw_app"
+
+    if args.jobname:
+       #search_jobname = "and jobname like %s "
+       search_jobname = "and jobname not like %s " if args.rev else "and jobname like %s "
+       search_sw = ""
 
     if args.jobs:
       select_runtime = """
@@ -100,10 +108,11 @@ class Software:
     """
     queue, nproc, jobname, sw_app, start_ts
     from Jobs where system like %s
-    and sw_app like %s
     """ + \
+    search_sw + \
     search_user + \
     search_host + \
+    search_jobname + \
     search_queue + \
     search_rsvn + \
     " and start_ts >= %s and start_ts <= %s " % (startdate, enddate) + \
