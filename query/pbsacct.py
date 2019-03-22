@@ -141,7 +141,12 @@ class Software:
     resultA.append(hline)
 
     modA = self.__modA
-    sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
+
+    if args.sort[0] == '_':
+      args.sort = args.sort[1:]
+      sortA = sorted(modA, key=itemgetter(args.sort))
+    else:
+      sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
     if args.log:
       resultA = []
