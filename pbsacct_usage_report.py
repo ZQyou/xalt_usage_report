@@ -36,7 +36,6 @@ class CmdLineOptions(object):
     parser.add_argument("--rsvn",    dest='rsvn',      action="store",       default = None,           help="filtered by reservation: gpu | pfs | ime")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort by cpuhours (default) | nodehours | mem | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print username instead of n_users")
-    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="report the usage with num_gpus > 0")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="list executables by date")
     parser.add_argument("--jobid",   dest='jobid',     action="store",       default = None,           help="search by jobid")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full sql command (DEBUG)")
