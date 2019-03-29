@@ -61,7 +61,7 @@ class ExecRun:
       args.sort = 'date' if not args.sort else args.sort
     
     if args.gpu:
-      search_gpu  = "and num_gpus > 0"
+      search_gpu  = "and num_gpus > 0 "
 
     args.sort = 'corehours' if not args.sort else args.sort
 
