@@ -2,6 +2,7 @@ from __future__ import print_function
 from operator import itemgetter
 from .util import get_osc_group
 from datetime import datetime
+import json
 
 def SoftwareFormat(args):
   headerA = "\nTop %s software sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
@@ -82,9 +83,9 @@ class Software:
         group_by = "group by username, groupname, account, sw_app"
 
     if args.jobname:
-       #search_jobname = "and jobname like %s "
-       search_jobname = "and jobname not like %s " if args.rev else "and jobname like %s "
-       search_sw = ""
+      #search_jobname = "and jobname like %s "
+      search_jobname = "and jobname not like %s " if args.rev else "and jobname like %s "
+      search_sw = ""
 
     if args.jobs:
       select_runtime = """
@@ -228,12 +229,13 @@ class Job:
       ('json', '1'),
     )
     response = requests.get('https://ganglia.osc.edu/graph.php', params=params, auth=(args.webuser,args.webpass))
-    print(response.url)
+    #print(response.url)
     #print(response.content)
-    import json
     json_data = json.loads(response.content)
-    print(json_data[0]['datapoints'])
+    #print(json_data[0]['datapoints'])
+    modA.append(json_data[0]['datapoints'])
 
   def report_by(self):
     modA = self.__modA
-    print(modA)
+    #print(json.dumps(modA[0], indent=4, sort_keys=True))
+    return modA
