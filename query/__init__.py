@@ -5,6 +5,7 @@ from .pbsacct import Software, Job
 from .BeautifulTbl import BeautifulTbl
 from .kmalloc import *
 from .conf import *
+from .util import *
 
 __all__ = [
     'BeautifulTbl',

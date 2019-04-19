@@ -4,7 +4,7 @@ import sys, os
 from pbsacct import Software
 from BeautifulTbl import BeautifulTbl
 from datetime import datetime, timedelta
-from .conf import set_timerange
+from .util import set_timerange
 
 class kmalloc(object):
   def __init__(self, kmalloc_file):

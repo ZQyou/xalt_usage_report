@@ -179,6 +179,8 @@ class Software:
 
     statA = {'num': len(sortA),
              'cpuhours': sum([x['cpuhours'] for x in sortA])}
+    if not args.jobs:
+        statA['jobs'] = sum([x['jobs'] for x in sortA])
     return [headerA, resultA, statA]
 
 class Job:
