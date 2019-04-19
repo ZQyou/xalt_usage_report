@@ -36,7 +36,7 @@ class CmdLineOptions(object):
     parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="printt executable usage only")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by corehours (default) | users | jobs | date")
+    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by cpuhours (default) | users | jobs | date")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
@@ -167,9 +167,9 @@ def main():
     sys.exit(0)
 
   if resultA:
-    print("--------------------------------------------")
-    print("XALT QUERY from",startdate,"to",enddate)
-    print("--------------------------------------------")
+    print("-------------------------------------------------")
+    print("XALT Software Usage from",startdate,"to",enddate)
+    print("-------------------------------------------------")
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
@@ -182,14 +182,14 @@ def main():
     print("Total entries: %d" % statA['num'])
     if 'jobs' in statA:
       print("Total jobs: %d" % statA['jobs'])
-    if 'corehours' in statA:
-      print("Total corehours: %.2f" % statA['corehours'])
+    if 'cpuhours' in statA:
+      print("Total cpuhours: %.2f" % statA['cpuhours'])
     print()
 
   if resultB:
-    print("--------------------------------------------")
-    print("XALT QUERY from",startdate,"to",enddate)
-    print("--------------------------------------------")
+    print("-------------------------------------------------")
+    print("XALT Software Usage from",startdate,"to",enddate)
+    print("-------------------------------------------------")
     print(headerB)
     bt = BeautifulTbl(tbl=resultB, gap = 2)
     print(bt.build_tbl());
@@ -202,8 +202,8 @@ def main():
     print("Total entries: %d" % statB['num'])
     if 'jobs' in statB:
       print("Total jobs: %d" % statB['jobs'])
-    if 'corehours' in statB:
-      print("Total corehours: %.2f" % statB['corehours'])
+    if 'cpuhours' in statB:
+      print("Total cpuhours: %.2f" % statB['cpuhours'])
     print()
 
 if ( __name__ == '__main__'): main()
