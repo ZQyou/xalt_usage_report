@@ -98,14 +98,15 @@ def main():
     resultA = user_sql(cursor, args)
 
   if args.jobid and args.gmetric:
-    import getpass
+    import getpass, json
     if not args.webuser:
       args.webuser = getpass.getuser()
     if not args.webpass:
       args.webpass = getpass.getpass()
     queryA = Job(cursor)
     queryA.build(args)
-    queryA.report_by()
+    resultA = queryA.report_by()
+    print(json.dumps(resultA[0], indent=4, sort_keys=True))
     sys.exit(0)
 
   #### Software Usage ####
@@ -122,12 +123,23 @@ def main():
     sys.exit(0)
 
   if resultA:
-    print("--------------------------------------------")
-    print("PBSACCT QUERY from",startdate,"to",enddate)
-    print("--------------------------------------------")
+    print("----------------------------------------------------")
+    print("PBSACCT Software Usage from",startdate,"to",enddate)
+    print("----------------------------------------------------")
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)
     print(bt.build_tbl());
+    print()
+
+  if statA:
+    num_unlist = statA['num'] - int(args.num)
+    if num_unlist > 0:
+      print("Unlisted entries: %d" % num_unlist)
+    print("Total entries: %d" % statA['num'])
+    if 'jobs' in statA:
+      print("Total jobs: %d" % statA['jobs'])
+    if 'cpuhours' in statA:
+      print("Total cpuhours: %.2f" % statA['cpuhours'])
     print()
 
 if __name__ == '__main__':
