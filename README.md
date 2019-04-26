@@ -1,15 +1,16 @@
 # XALT
 ## Description 
-`xalt_usage_report.py` analyzes XATL database and generates a usage report of modules or executables. By default the script generates a week-to-date report for both module and executable usages for the cluster where you login. Use following options to filter or change the output.
+`xalt_usage_report.py` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.
 
 ## Note for output
-* `CoreHrs`: walltime x # cores x # threads, NOT actual CPU utilization.
+* `CPUHrs`: walltime x # cores x # threads, NOT actual CPU utilization.
 
 ## Command-line options
 * `--sw`: print software/exectuable usage (default)
 * `--module`: print module usage
 * `--execrun`: print executable path; this is break-down of `--sw` mode
-* `--sql`: SQL pattern for matching modules or executables. (`%` is SQL wildcard character)
+* `--sql`: SQL pattern for matching software/executable/execpath/module, depending on the report option (`%` is SQL wildcard character)
+* `--days`: report from now to DAYS back
 * `--start`: start date, e.g. 2018-12-25
 * `--end`: end date
 * `--num`: top number of entries to report (default is 20)
@@ -19,10 +20,13 @@
 * `--gpu`: print GPU usage 
 * `--user`: user name for matching
 * `--jobs`: print job ids and dates
-* `--days`: report from now to DAYS back
 * `--csv`: print in CSV format
 
 ## Use cases
+Get lammps usage within one week
+```
+xalt_usage_report.py --sql lammps
+```
 Get the module usage sorted by \# jobs from now to 2 days back
 ```
 xalt_usage_report.py --module --sorted jobs --days 2
