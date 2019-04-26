@@ -32,8 +32,10 @@ class CmdLineOptions(object):
     parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = "%",            help="syshost")
-    parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage only")
-    parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="printt executable usage only")
+    parser.add_argument("--sw",      dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
+    parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")
+#   parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="print executable usage only")
+    parser.add_argument("--execpath",dest='execpath',  action="store_true",                            help="print executable paths; this is break-down of --sw mode")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by cpuhours (default) | users | jobs | date")
@@ -56,12 +58,8 @@ class CmdLineOptions(object):
 
 def main():
   ##### Configuration #####
-  XALT_ETC_DIR = os.environ.get("XALT_ETC_DIR","./")
-  args         = CmdLineOptions().execute()
-  config       = configparser.ConfigParser()     
-  configFn     = os.path.join(XALT_ETC_DIR,args.confFn)
-  config.read(configFn)
-
+  args    = CmdLineOptions().execute()
+  config  = xalt_conf(args.confFn)
   conn = MySQLdb.connect              \
          (config.get("MYSQL","HOST"), \
           config.get("MYSQL","USER"), \
@@ -115,17 +113,11 @@ def main():
 
   ##### Query #####
   resultA = None
-  resultB = None
   queryA = None
-  queryB = None
   headerA = None
-  headerB = None
   statA = None
-  statB = None
 
-  args.username = True if args.group else args.username
-
-  # debug
+  #### DEBUG ####
   if args.show:
     if args.show != "tables":
       resultA = describe_table(cursor, args)
@@ -138,29 +130,26 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
   
-  # search by username
-  if args.execrun:
+  #### Software Usage ####
+  args.username = True if args.group else args.username
+  args.sw = False if args.module or args.execpath else args.sw
+  if not resultA and args.sw:
     queryA = ExecRun(cursor)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
   
-  if args.module:
+  if not resultA and args.execpath:
+    queryA = ExecRun(cursor)
+    queryA.build(args, startdate_t, enddate_t)
+    headerA, resultA, statA = queryA.report_by(args)
+
+  if not resultA and args.module:
     queryA = Module(cursor)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 
-  if not resultA:
-    queryA = Module(cursor)
-    queryB = ExecRun(cursor)
-    if queryA:
-      queryA.build(args, startdate_t, enddate_t)
-      headerA, resultA, statA = queryA.report_by(args)
-    if queryB:
-      queryB.build(args, startdate_t, enddate_t)
-      headerB, resultB, statB = queryB.report_by(args)
-
   if resultA and args.csv:
-    print("XALT QUERY from",startdate,"to",enddate)
+    print("XALT Software Usage from",startdate,"to",enddate)
     print(",".join(resultA[0]))
     for row in resultA[2:]:
       print(",".join(row))
@@ -184,26 +173,6 @@ def main():
       print("Total jobs: %d" % statA['jobs'])
     if 'cpuhours' in statA:
       print("Total cpuhours: %.2f" % statA['cpuhours'])
-    print()
-
-  if resultB:
-    print("-------------------------------------------------")
-    print("XALT Software Usage from",startdate,"to",enddate)
-    print("-------------------------------------------------")
-    print(headerB)
-    bt = BeautifulTbl(tbl=resultB, gap = 2)
-    print(bt.build_tbl());
-    print()
-
-  if statB:
-    num_unlist = statB['num'] - int(args.num)
-    if num_unlist > 0:
-      print("Unlisted entries: %d" % num_unlist)
-    print("Total entries: %d" % statB['num'])
-    if 'jobs' in statB:
-      print("Total jobs: %d" % statB['jobs'])
-    if 'cpuhours' in statB:
-      print("Total cpuhours: %.2f" % statB['cpuhours'])
     print()
 
 if ( __name__ == '__main__'): main()

@@ -62,7 +62,7 @@ class Software:
     search_host  = ""
     search_queue = ""
     search_rsvn  = ""
-    search_sw = "and sw_app not like %s" if args.rev else "and sw_app like %s"
+    search_sw = "and LOWER(sw_app) not like %s " if args.rev else "and LOWER(sw_app) like %s "
     search_jobname = ""
     group_by     = "group by sw_app"
 
@@ -121,7 +121,7 @@ class Software:
     #print(query)
 
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.sql))
+    cursor.execute(query, (args.syshost, args.sql.lower()))
     resultA = cursor.fetchall()
     modA = self.__modA
     for cpuhours, corehours, nodehours, mem, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:

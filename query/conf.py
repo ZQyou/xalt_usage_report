@@ -5,6 +5,13 @@ try:
 except:
   import ConfigParser as configparser
 
+def xalt_conf(confFn):
+  XALT_ETC_DIR = os.environ.get("XALT_ETC_DIR","./")
+  config       = configparser.ConfigParser()     
+  configFn     = os.path.join(XALT_ETC_DIR, confFn)
+  config.read(configFn)
+
+  return config
 
 def pbsacct_conf(syshost, confFn):
   config  = configparser.ConfigParser()     

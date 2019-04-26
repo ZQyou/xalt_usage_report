@@ -6,8 +6,9 @@
 * `CoreHrs`: walltime x # cores x # threads, NOT actual CPU utilization.
 
 ## Command-line options
-* `--module`: print module usage only
-* `--execrun`: print executable usage only
+* `--sw`: print software/exectuable usage (default)
+* `--module`: print module usage
+* `--execrun`: print executable path; this is break-down of `--sw` mode
 * `--sql`: SQL pattern for matching modules or executables. (`%` is SQL wildcard character)
 * `--start`: start date, e.g. 2018-12-25
 * `--end`: end date

@@ -1,6 +1,6 @@
 from .sql import *
-from .module import *
-from .execrun import *
+from .xalt_module import *
+from .xalt_execrun import *
 from .pbsacct import Software, Job
 from .BeautifulTbl import BeautifulTbl
 from .kmalloc import *
@@ -12,7 +12,7 @@ __all__ = [
     'describe_table', 'show_tables', 'xalt_select_data',  'pbsacct_select_jobs', 'user_sql', 
     'Module', 'ExecRun',
     'Software', 'Job',
-    'pbsacct_conf', 'set_timerange',
+    'xalt_conf', 'pbsacct_conf', 'set_timerange',
     'kmalloc',
 ]
 

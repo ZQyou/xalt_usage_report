@@ -1,30 +1,30 @@
 from operator import itemgetter
 from .util import get_osc_group
 
-def ExecRunFormat(args):
-  headerA = "\nTop %s executables sorted by %s\n" % (str(args.num), args.sort)
-  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users", "ExecPath"]
-  fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
-  orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+def ModuleFormat(args):
+  headerA = "\nTop %s  modules sorted by %s\n" % (str(args.num), args.sort)
+  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users", "Modules"]
+  fmtT    = ["%.2f", "%.2f", "%d", "%d", "%s"]
+  orderT  = ['cpuhours', 'nodehours', 'jobs', 'users', 'modules']
   if args.username:
-    headerA = "\nTop %s executables used by users\n" % (str(args.num))
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username", "ExecPath"]
-    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+    headerA = "\nTop %s modules used by users\n" % (str(args.num))
+    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username", "Modules"]
+    fmtT    = ["%.2f", "%.2f", "%d", "%s", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users', 'modules']
     if args.group:
        headerT.insert(-1, "Group")
   if args.user:
-    headerA = "\nTop %s executables used by %s\n" % (str(args.num), args.user)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "ExecPath"]
-    fmtT    = ["%.2f", "%.2f", "%d"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs']
+    headerA = "\nTop %s modules used by %s\n" % (str(args.num), args.user)
+    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Modules"]
+    fmtT    = ["%.2f", "%2.f", "%d", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'jobs', 'modules']
   if args.jobs:
     headerA = "\nFirst %s jobs sorted by %s\n" % (str(args.num), args.sort)
     if args.user:
       headerA = "\nFirst %s jobs used by %s\n" % (str(args.num), args.user)
-    headerT = ["Date", "JobID", "CPUHrs", "NodeHrs", "# GPUs", "# Cores", "# Threads", "ExecPath"]
-    fmtT    = ["%s", "%s", "%.2f", "%.2f", "%d", "%d", "%d"]
-    orderT  = ['date', 'jobs', 'cpuhours', 'nodehours', 'n_gpus', 'n_cores', 'n_thds']
+    headerT = ["Date", "JobID", "CPUHrs", "NodeHrs", "# GPUs", "# Cores", "# Threads", "Modules"]
+    fmtT    = ["%s", "%s", "%.2f", "%.2f", "%d", "%d", "%d", "%s"]
+    orderT  = ['date', 'jobs', 'cpuhours', 'nodehours', 'n_gpus', 'n_cores', 'n_thds', 'modules']
 
   headerA += '\n'
   if args.sql != '%':
@@ -35,7 +35,8 @@ def ExecRunFormat(args):
 
   return [headerA, headerT, fmtT, orderT]
 
-class ExecRun:
+
+class Module:
   def __init__(self, cursor):
     self.__modA  = []
     self.__cursor = cursor
@@ -49,14 +50,14 @@ class ExecRun:
     select_user  = "COUNT(DISTINCT(user)) as n_users, "
     search_user  = ""
     search_gpu   = ""
-    group_by     = "group by executables"
+    group_by     = "group by modules"
     if args.user or args.username:
       select_user = "user, "
       if args.user:
         search_user = "and user like '%s'" % args.user
         args.group = False
       if args.username:
-        group_by = "group by user, executables"
+        group_by = "group by user, modules"
 
     if args.jobs:
       select_runtime = """
@@ -67,12 +68,12 @@ class ExecRun:
       select_jobs = "job_id, "
       group_by = ""
       args.sort = 'date' if not args.sort else args.sort
+      args.group = False
     
     if args.gpu:
       search_gpu  = "and num_gpus > 0 "
 
     args.sort = 'cpuhours' if not args.sort else args.sort
-
     query = """ SELECT """ + \
     select_runtime + \
     select_jobs + \
@@ -82,23 +83,22 @@ class ExecRun:
     num_cores                           as n_cores,
     num_threads                         as n_thds,
     module_name                         as modules,
-    exec_path                           as executables,
     date
     from xalt_run where syshost like %s
     """ + \
     search_user + \
     """
-    and exec_path like %s
-    and date >= %s and date <= %s
+    and LOWER(module_name) like %s
+    and date >= %s and date <= %s and module_name is not null
     """ + \
     search_gpu + \
     group_by
 
     cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.sql, startdate, enddate))
+    cursor.execute(query, (args.syshost, args.sql.lower(), startdate, enddate))
     resultA = cursor.fetchall()
     modA = self.__modA
-    for cpuhours, nodehours, jobs, users, n_gpus, n_cores, n_thds, modules, executables, date in resultA:
+    for cpuhours, nodehours, jobs, users, n_gpus, n_cores, n_thds, modules, date in resultA:
       entryT = { 'cpuhours' : cpuhours,
                  'nodehours' : nodehours,
                  'jobs'      : jobs,
@@ -107,13 +107,12 @@ class ExecRun:
                  'n_cores'   : n_cores,
                  'n_thds'    : n_thds,
                  'modules'   : modules,
-                 'executables' : executables,
-                 'date'        : date }
+                 'date'      : date }
       modA.append(entryT)
 
   def report_by(self, args):
     resultA = []
-    headerA, headerT, fmtT, orderT = ExecRunFormat(args)
+    headerA, headerT, fmtT, orderT = ModuleFormat(args)
     hline  = map(lambda x: "-"*len(x), headerT)
     resultA.append(headerT)
     resultA.append(hline)
@@ -128,7 +127,6 @@ class ExecRun:
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
-      resultA[-1].append(entryT['executables'] + " [%s]" % entryT['modules'])
       if args.group:
         group = get_osc_group(entryT['users'])
         resultA[-1].insert(-1, group)
