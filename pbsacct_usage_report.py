@@ -4,7 +4,6 @@ from __future__ import print_function
 import os, sys, base64
 import MySQLdb, argparse
 import time
-from datetime import datetime, timedelta
 from pprint import pprint
 from query import *
 from util import *
@@ -79,7 +78,7 @@ def main():
     resultA = queryA.report_by(args)
     #pprint(resultA)
     print("--------------------------------------------")
-    print("PBSACCT QUERY from",startdate,"to",enddate)
+    print("PBSACCT Software Usage from",startdate,"to",enddate)
     print("--------------------------------------------")
     syslog_logging(args.syshost, 'pbsacct', resultA, args.log)
     sys.exit(0)
@@ -97,12 +96,13 @@ def main():
   if args.dbg:
     resultA = user_sql(cursor, args)
 
-  if args.jobid and args.gmetric:
+  #if args.jobid and args.gmetric:
+  if args.jobid:
     import getpass, json
-    if not args.webuser:
-      args.webuser = getpass.getuser()
-    if not args.webpass:
-      args.webpass = getpass.getpass()
+#   if not args.webuser:
+#     args.webuser = getpass.getuser()
+#   if not args.webpass:
+#     args.webpass = getpass.getpass()
     queryA = Job(cursor)
     queryA.build(args)
     resultA = queryA.report_by()

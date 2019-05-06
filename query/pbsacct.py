@@ -189,7 +189,7 @@ class Job:
     self.__cursor = cursor
 
   def build(self, args):
-    items = ['username','groupname','account','jobname','nproc','nodes','queue','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app']
+    items = ['username','groupname','account','jobname','nproc','nodes','queue','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app','script']
     query = """ SELECT """ + \
     ",".join(items) + \
     """
@@ -209,6 +209,11 @@ class Job:
     #print(entryT)
     modA.append(entryT)
 
+  def report_by(self):
+    modA = self.__modA
+    #print(json.dumps(modA[0], indent=4, sort_keys=True))
+    return modA
+"""
     import requests
     import time
     params = (
@@ -236,8 +241,4 @@ class Job:
     json_data = json.loads(response.content)
     #print(json_data[0]['datapoints'])
     modA.append(json_data[0]['datapoints'])
-
-  def report_by(self):
-    modA = self.__modA
-    #print(json.dumps(modA[0], indent=4, sort_keys=True))
-    return modA
+"""
