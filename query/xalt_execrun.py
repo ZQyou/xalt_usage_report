@@ -149,6 +149,21 @@ class ExecRun:
     else:
       sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
     num = min(int(args.num), len(sortA))
+    if args.log:
+      resultA = []
+      import numpy
+      date_list = [ x['date'] for x in sortA ] 
+      u_year = numpy.unique(map(lambda x: x.year, date_list))
+      u_month = numpy.unique(map(lambda x: '%02d' % x.month, date_list))
+      if len(u_year) == 1 and len(u_month) == 1: 
+        for i in range(num):
+          sortA[i]['year'] = u_year[0]
+          sortA[i]['month'] = u_month[0]
+          resultA.append(sortA[i])
+      else: 
+          print("Searching across multiple months is not available")
+      return resultA
+
     for i in range(num):
       entryT = sortA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))

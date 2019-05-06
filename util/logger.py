@@ -12,6 +12,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         'year': None,
         'month': None,
         'software': None,
+        'executables': None,
         'cpuhours': 0,
         'corehours': 0,
         'nodehours': 0,
@@ -35,6 +36,7 @@ def syslog_logging(database, syshost, extra=[], handler='stdout'):
     'year=%(year)s '
     'month=%(month)s '
     'software=%(software)s '
+    'executables=%(executables)s '
     'cpuhours=%(cpuhours)s '
     'corehours=%(corehours)s '
     'nodehours=%(nodehours)s '
@@ -92,6 +94,7 @@ if __name__ == '__main__':
     'year': 2018,
     'month': 11,
     'software': 'vasp',
+    'executables': 'VASP',
     'cpuhours':  267944,
     'corehours': 256244,
     'nodehours': 8379,

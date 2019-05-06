@@ -6,17 +6,16 @@ import MySQLdb, argparse
 import time
 from datetime import datetime, timedelta
 from pprint import pprint
-try:
-  import configparser
-except:
-  import ConfigParser as configparser
 
 dirNm = os.environ.get("OSC_XALT_DIR","./")
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "libexec")))
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "site")))
 
 from query import *
+from util import *
 from report import *
+
+syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
 
 class CmdLineOptions(object):
   """ Command line Options class """
@@ -31,7 +30,7 @@ class CmdLineOptions(object):
     parser.add_argument("--confFn",  dest='confFn',    action="store",       default = "xalt_db.conf", help="db name")
     parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
-    parser.add_argument("--syshost", dest='syshost',   action="store",       default = "%",            help="syshost")
+    parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="syshost")
     parser.add_argument("--sw",      dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")
 #   parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="print executable usage only")
@@ -46,6 +45,7 @@ class CmdLineOptions(object):
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full SQL command (DEBUG)")
+    parser.add_argument("--log",     dest='log',       action="store",       default = None,           help="dump the result to log: stdout | syslog")
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
@@ -70,7 +70,7 @@ def main():
   enddate = time.strftime('%Y-%m-%d')
   if (args.endD is not None):
     enddate = args.endD
-  
+
   # Generate weekly report by default
   startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime('%Y-%m-%d');
   if (args.startD is not None):
@@ -78,7 +78,6 @@ def main():
 
   startdate_t = startdate + ' 00:00:00'
   enddate_t = enddate + ' 23:59:59'
-
 
   ##### Kmalloc ####
   if args.kmalloc:
@@ -111,7 +110,6 @@ def main():
     full_report(cursor, args, startdate_t, enddate_t)
     sys.exit(0)
 
-  ##### Query #####
   resultA = None
   queryA = None
   headerA = None
@@ -129,6 +127,19 @@ def main():
     resultA = xalt_select_data(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
+
+  #### Syslog ####
+  if args.log:
+    args.sw = True
+    queryA = ExecRun(cursor)
+    queryA.build(args, startdate_t, enddate_t)
+    resultA  = queryA.report_by(args)
+    #pprint(resultA)
+    print("--------------------------------------------")
+    print("XALT Software Usage from",startdate,"to",enddate)
+    print("--------------------------------------------")
+    syslog_logging(args.syshost, 'xalt', resultA, args.log)
+    sys.exit(0)
   
   #### Software Usage ####
   args.username = True if args.group else args.username
