@@ -189,7 +189,7 @@ class Job:
     self.__cursor = cursor
 
   def build(self, args):
-    items = ['username','groupname','account','jobname','nproc','nodes','queue','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app','script']
+    items = ['username','groupname','account','jobname','nproc','nodes','queue','submit_ts','start_ts','end_ts','cput_sec','walltime_sec','hostlist','exit_status','sw_app','script']
     query = """ SELECT """ + \
     ",".join(items) + \
     """
@@ -207,6 +207,8 @@ class Job:
     for i, key in enumerate(items):
       entryT[key] =  resultA[i]
     #print(entryT)
+    for k in ['submit_ts', 'start_ts', 'end_ts']:
+      entryT[k] = datetime.fromtimestamp(entryT[k]).strftime("%Y-%m-%d %H:%M:%S")
     modA.append(entryT)
 
   def report_by(self):
