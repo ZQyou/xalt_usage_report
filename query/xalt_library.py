@@ -7,13 +7,13 @@ def LibraryFormat(args):
   headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users"]
   fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
   orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-#  if args.username:
-#    headerA = "\nTop %s %s used by users\n" % (str(args.num), top_thing)
-#    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
-#    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
-#    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-#    if args.group:
-#       headerT.insert(-1, "Group")
+  if args.username:
+    headerA = "\nTop %s %s used by users\n" % (str(args.num), top_thing)
+    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
+    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+    if args.group:
+       headerT.insert(-1, "Group")
   if args.user:
     headerA = "\nTop %s %s used by %s\n" % (str(args.num), top_thing, args.user)
     headerT = ["CPUHrs", "NodeHrs", "# Jobs"]
@@ -52,14 +52,16 @@ class Library:
     select_user  = "COUNT(DISTINCT(t3.user)) AS n_users, "
     search_user  = ""
     search_gpu   = ""
-    group_by     = "GROUP BY t1.object_path"
+#   group_by     = "GROUP BY t1.object_path"
+    group_by     = "GROUP BY t1.module_name"
     if args.user or args.username:
       select_user = "t3.user, "
       if args.user:
         search_user = "and t3.user LIKE '%s'" % args.user
         args.group = False
       if args.username:
-        group_by = "GROUP BY t3.user, t1.object_path"
+#       group_by = "GROUP BY t3.user, t1.object_path"
+        group_by = "GROUP BY t3.user, t1.module_name"
 
     if args.jobs:
       select_runtime = """
