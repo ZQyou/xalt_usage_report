@@ -35,6 +35,7 @@ class CmdLineOptions(object):
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")
 #   parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="print executable usage only")
     parser.add_argument("--execpath",dest='execpath',  action="store_true",                            help="print executable paths; this is break-down of --sw mode")
+    parser.add_argument("--library", dest='library',   action="store_true",                            help="print library usage")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by cpuhours (default) | users | jobs | date")
@@ -143,7 +144,7 @@ def main():
   
   #### Software Usage ####
   args.username = True if args.group else args.username
-  args.sw = False if args.module or args.execpath else args.sw
+  args.sw = False if args.module or args.execpath or args.library else args.sw 
   if not resultA and args.sw:
     queryA = ExecRun(cursor)
     queryA.build(args, startdate_t, enddate_t)
@@ -156,6 +157,11 @@ def main():
 
   if not resultA and args.module:
     queryA = Module(cursor)
+    queryA.build(args, startdate_t, enddate_t)
+    headerA, resultA, statA = queryA.report_by(args)
+
+  if not resultA and args.library:
+    queryA = Library(cursor)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 

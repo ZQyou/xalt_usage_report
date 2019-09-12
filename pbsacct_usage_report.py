@@ -65,6 +65,7 @@ def main():
 
   headerA = None
   resultA = None
+  statA = None
 
   #### Kmalloc ####
   if args.kmalloc:
