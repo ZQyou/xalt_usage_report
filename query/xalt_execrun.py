@@ -155,7 +155,10 @@ class ExecRun:
       date_list = [ x['date'] for x in sortA ] 
       u_year = numpy.unique(map(lambda x: x.year, date_list))
       u_month = numpy.unique(map(lambda x: '%02d' % x.month, date_list))
-      if len(u_year) == 1 and len(u_month) == 1: 
+      if len(u_year) == 0 or len(u_month) == 0: 
+          print("No data available in selected time range")
+          print("or you are not on the right system")
+      elif len(u_year) == 1 and len(u_month) == 1: 
         for i in range(num):
           sortA[i]['year'] = u_year[0]
           sortA[i]['month'] = u_month[0]

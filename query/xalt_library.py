@@ -27,7 +27,7 @@ def LibraryFormat(args):
     fmtT    = ["%s", "%s", "%.2f", "%.2f"]
     orderT  = ['date', 'jobs', 'cpuhours', 'nodehours']
 
-  headerT += ["Libraies"]
+  headerT += ["Library Modules/Paths"]
 
   headerA += '\n'
   if args.sql != '%':
@@ -78,6 +78,8 @@ class Library:
 
     args.sort = 'cpuhours' if not args.sort else args.sort
 
+    search_module = "and (t1.module_name is not NULL and t1.module_name != 'NULL') "
+
     query = """SELECT """ + \
     select_runtime + \
     select_jobs + \
@@ -89,9 +91,9 @@ class Library:
     """
     t3.date
     FROM xalt_object as t1, join_run_object as t2, xalt_run as t3 WHERE t3.syshost LIKE %s
-    and (t1.module_name is not NULL and t1.module_name != 'NULL')
     and t1.obj_id = t2.obj_id and t2.run_id = t3.run_id
     """ + \
+    search_module + \
     search_user + \
     """
     and t3.date >= %s and t3.date <= %s
@@ -105,14 +107,14 @@ class Library:
     cursor.execute(query, (args.syshost, startdate, enddate))
     resultA = cursor.fetchall()
     modA = self.__modA
-    for cpuhours, nodehours, jobs, users, object_path, modules, date in resultA:
-      entryT = { 'cpuhours' : cpuhours,
+    for cpuhours, nodehours, jobs, users, libpath, modules, date in resultA:
+      entryT = { 'cpuhours'  : cpuhours,
                  'nodehours' : nodehours,
                  'jobs'      : jobs,
                  'users'     : users,
-                 'object_path' : object_path,
+                 'libpath'   : libpath,
                  'modules'   : modules,
-                 'date'        : date }
+                 'date'      : date }
       modA.append(entryT)
 
   def report_by(self, args):
