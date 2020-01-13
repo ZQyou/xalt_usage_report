@@ -1,4 +1,4 @@
 # Upload montly PBS and XALT software usage 
 ```
-logger -t sw_usage_dev2 [pbs/xalt]/*.log
+ls */*.log |while read x; do logger -t sw_usage -f $x; done
 ```
