@@ -1,0 +1,3 @@
+syshost=pitzer database=pbsacct year=2018 month=08 software=yt executables=None cpuhours=35.62 corehours=10.34 nodehours=0.89 n_jobs=14 n_users=1 n_groups=1 n_accounts=1 
+syshost=pitzer database=pbsacct year=2018 month=08 software=gromacs executables=None cpuhours=27.18 corehours=32.08 nodehours=3.02 n_jobs=9 n_users=3 n_groups=1 n_accounts=2 
+syshost=pitzer database=pbsacct year=2018 month=08 software=nwchem executables=None cpuhours=0.18 corehours=0.10 nodehours=0.09 n_jobs=19 n_users=2 n_groups=2 n_accounts=2 
