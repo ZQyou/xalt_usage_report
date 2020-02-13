@@ -30,7 +30,7 @@ class LoggerAdapter(logging.LoggerAdapter):
 
 def syslog_logging(database, syshost, extra=[], handler='stdout'):
   fmt = (
-    'sw_usage_dev2: '
+#   'sw_usage_dev2: '
     'syshost=%(syshost)s '
     'database=%(database)s '
     'year=%(year)s '
@@ -52,7 +52,8 @@ def syslog_logging(database, syshost, extra=[], handler='stdout'):
   if handler == 'stdout':
     syslog = logging.StreamHandler(stream=sys.stdout)
   elif handler == 'syslog':
-    syslog = logging.handlers.SysLogHandler(address='/dev/log')
+    raise Exception("syslog_loggin: unsupported handler type %s" % handler)
+    #syslog = logging.handlers.SysLogHandler(address='/dev/log')
   else:
     raise Exception("syslog_loggin: unsupported handler type %s" % handler)
 
