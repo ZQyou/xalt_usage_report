@@ -24,11 +24,12 @@ def xalt_select_data(cursor, args, startdate, enddate):
     return resultA
 
 def user_sql(cursor, args):
-    query = args.dbg + \
-    """
-    ORDER BY date DESC
-    """ + \
-    "LIMIT " + str(args.num)
+    query = args.dbg 
+#   query = args.dbg + \
+#   """
+#   ORDER BY date DESC
+#   """ + \
+#   "LIMIT " + str(args.num)
 
     cursor.execute(query)
     resultA = cursor.fetchall()

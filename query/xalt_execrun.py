@@ -1,6 +1,8 @@
 from operator import itemgetter
 from .util import get_osc_group
 from xalt_sw_mapping import sw_mapping
+import pandas as pd
+import time
 
 def ExecRunFormat(args):
   top_thing = "software/executables" if args.sw else "executable paths"
@@ -40,100 +42,56 @@ def ExecRunFormat(args):
   return [headerA, headerT, fmtT, orderT]
 
 class ExecRun:
-  def __init__(self, cursor):
+  def __init__(self, connect):
     self.__modA  = []
-    self.__cursor = cursor
+    self.__conn = connect
 
   def build(self, args, startdate, enddate):
-    select_runtime = """
-    ROUND(SUM(run_time*num_cores*num_threads)/3600,2) AS cpuhours,
-    ROUND(SUM(run_time*num_nodes)/3600,2) AS nodehours,
-    """
-    select_jobs  = "COUNT(DISTINCT(job_id)) AS n_jobs, "
-    select_user  = "COUNT(DISTINCT(user)) AS n_users, "
-    search_user  = ""
-    search_gpu   = ""
-    group_by     = "GROUP BY executables"
-    if args.user or args.username:
-      select_user = "user, "
-      if args.user:
-        search_user = "and user LIKE '%s'" % args.user
-        args.group = False
-      if args.username:
-        group_by = "GROUP BY user, executables"
-
-    if args.jobs:
-      select_runtime = """
-      ROUND(run_time*num_cores*num_threads/3600,2) AS cpuhours,
-      ROUND(run_time*num_nodes/3600,2) AS nodehours,
-      """
-      select_user = "user, "
-      select_jobs = "job_id, "
-      group_by = ""
-      args.sort = 'date' if not args.sort else args.sort
-    
-    if args.gpu:
-      search_gpu  = "and num_gpus > 0 "
-
+    search_user = ""
+    if args.user:
+      args.group = False
+      search_user = "AND user LIKE '%s' " % args.user
     args.sort = 'cpuhours' if not args.sort else args.sort
 
-
-    select_sw =  "exec_path AS executables, "
-    search_sw = "and LOWER(exec_path) LIKE %s "
-    sA = []
-    if args.sw:
-      equiv_patternA = sw_mapping()
-      sA.append("CASE ")
-      for entry in equiv_patternA:
-        regexp = entry[0].lower()
-        sw     = entry[1]
-        s      = "WHEN LOWER(SUBSTRING_INDEX(exec_path,'/',-1)) REGEXP '%s' THEN '%s' " % (regexp, sw)
-        sA.append(s)
-      
-      sA.append(" ELSE SUBSTRING_INDEX(exec_path,'/',-1) END ")
-      select_sw = "".join(sA) + " AS executables, "
-      search_sw = "and LOWER(" + "".join(sA) + ") LIKE %s "
-
-    query = """SELECT """ + \
-    select_runtime + \
-    select_jobs + \
-    select_user + \
-    """
+    query = """SELECT
+    date, run_time, job_id,
+    user        AS users, 
     num_gpus    AS n_gpus,
     num_cores   AS n_cores,
     num_threads AS n_thds,
+    num_nodes   AS n_nodes,
     module_name AS modules,
-    """ + \
-    select_sw + \
-    """
-    date
+    exec_path   AS executables
     FROM xalt_run WHERE syshost LIKE %s
+    AND date >= %s and date <= %s
+    AND LOWER(exec_path) LIKE %s 
     """ + \
-    search_user + \
-    search_sw + \
-    """
-    and date >= %s and date <= %s
-    """ + \
-    search_gpu + \
-    group_by
-
+    search_user 
     #print(query)
-    cursor  = self.__cursor
-    cursor.execute(query, (args.syshost, args.sql.lower(), startdate, enddate))
-    resultA = cursor.fetchall()
-    modA = self.__modA
-    for cpuhours, nodehours, jobs, users, n_gpus, n_cores, n_thds, modules, executables, date in resultA:
-      entryT = { 'cpuhours' : cpuhours,
-                 'nodehours' : nodehours,
-                 'jobs'      : jobs,
-                 'users'     : users,
-                 'n_gpus'    : n_gpus,
-                 'n_cores'   : n_cores,
-                 'n_thds'    : n_thds,
-                 'modules'   : modules,
-                 'executables' : executables,
-                 'date'        : date }
-      modA.append(entryT)
+    
+    connect = self.__conn
+    s_time = time.time()
+    queryA = pd.read_sql(query, connect,
+            params=(args.syshost, startdate, enddate, args.sql.lower()))
+    print("Query time: %.2f" % float((time.time() - s_time)))
+
+    queryA['cpuhours'] = queryA['run_time'] * queryA['n_thds'] * queryA['n_cores']
+    queryA['nodehours'] = queryA['run_time'] * queryA['n_nodes']
+
+    if args.sw:
+      queryA['executables'] = queryA['executables'].replace(to_replace='/.*/', value='', regex=True)
+      equiv_patternA = sw_mapping()
+      for entry in equiv_patternA:
+        queryA.loc[queryA['executables'].str.contains(entry[0]), 'executables'] = entry[1]
+
+    dg = queryA.groupby(['users', 'executables']) if args.username else queryA.groupby('executables')
+    df = dg['cpuhours'].sum().divide(3600).round(2).to_frame()
+    df['nodehours'] = dg['nodehours'].sum().divide(3600).round(2)
+    df['jobs'] = dg['job_id'].nunique()
+    if not args.username:
+      df['users'] = dg['users'].nunique()
+
+    self.__modA = df.sort_values(by=args.sort, ascending=args.asc).reset_index().T.to_dict().values()
 
   def report_by(self, args):
     resultA = []
@@ -143,32 +101,27 @@ class ExecRun:
     resultA.append(hline)
 
     modA = self.__modA
-    if args.sort[0] == '_':
-      args.sort = args.sort[1:]
-      sortA = sorted(modA, key=itemgetter(args.sort))
-    else:
-      sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
-    num = min(int(args.num), len(sortA))
+    num = min(int(args.num), len(modA))
     if args.log:
       resultA = []
       import numpy
-      date_list = [ x['date'] for x in sortA ] 
+      date_list = [ x['date'] for x in modA ] 
       u_year = numpy.unique(map(lambda x: x.year, date_list))
       u_month = numpy.unique(map(lambda x: '%02d' % x.month, date_list))
       if len(u_year) == 0 or len(u_month) == 0: 
-          print("No data available in selected time range")
-          print("or you are not on the right system")
+        print("No data available in selected time range")
+        print("or you are not on the right system")
       elif len(u_year) == 1 and len(u_month) == 1: 
         for i in range(num):
-          sortA[i]['year'] = u_year[0]
-          sortA[i]['month'] = u_month[0]
-          resultA.append(sortA[i])
+          modA[i]['year'] = u_year[0]
+          modA[i]['month'] = u_month[0]
+          resultA.append(modA[i])
       else: 
           print("Searching across multiple months is not available")
       return resultA
 
     for i in range(num):
-      entryT = sortA[i]
+      entryT = modA[i]
       resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
       if args.sw:
         resultA[-1].append(entryT['executables'])
@@ -178,8 +131,8 @@ class ExecRun:
         group = get_osc_group(entryT['users'])
         resultA[-1].insert(-1, group)
 
-    statA = {'num': len(sortA),
-             'cpuhours': sum([x['cpuhours'] for x in sortA])}
+    statA = {'num': len(modA),
+             'cpuhours': sum([x['cpuhours'] for x in modA])}
     if not args.jobs:
-        statA['jobs'] = sum([x['jobs'] for x in sortA])
+        statA['jobs'] = sum([x['jobs'] for x in modA])
     return [headerA, resultA, statA]

@@ -6,6 +6,7 @@ import MySQLdb, argparse
 import time
 from datetime import datetime, timedelta
 from pprint import pprint
+import pymysql
 
 dirNm = os.environ.get("OSC_XALT_DIR","./")
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "libexec")))
@@ -33,12 +34,12 @@ class CmdLineOptions(object):
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="syshost")
     parser.add_argument("--sw",      dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")
-#   parser.add_argument("--execrun", dest='execrun',   action="store_true",                            help="print executable usage only")
     parser.add_argument("--execpath",dest='execpath',  action="store_true",                            help="print executable paths; this is break-down of --sw mode")
     parser.add_argument("--library", dest='library',   action="store_true",                            help="print library usage")
     parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
     parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
     parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by cpuhours (default) | users | jobs | date")
+    parser.add_argument("--asc",     dest='asc',       action="store_true",                            help="ascending sort")
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
@@ -51,7 +52,6 @@ class CmdLineOptions(object):
     parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
-    parser.add_argument("--kmalloc", dest='kmalloc',   action="store",       default = None,           help="read splunk csv and report usage for kmalloc events")
     parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
     args = parser.parse_args()
     return args
@@ -61,12 +61,21 @@ def main():
   ##### Configuration #####
   args    = CmdLineOptions().execute()
   config  = xalt_conf(args.confFn)
-  conn = MySQLdb.connect              \
-         (config.get("MYSQL","HOST"), \
-          config.get("MYSQL","USER"), \
-          base64.b64decode(config.get("MYSQL","PASSWD")), \
-          config.get("MYSQL","DB"))
-  cursor = conn.cursor()
+  cursor  = None
+  conn    = None
+  if args.report or args.dbg or args.show:
+      conn = MySQLdb.connect(
+              config.get("MYSQL","HOST"), \
+              config.get("MYSQL","USER"), \
+              base64.b64decode(config.get("MYSQL","PASSWD")), \
+              config.get("MYSQL","DB"))
+      cursor = conn.cursor()
+  else:
+      conn = pymysql.connect(
+              host=config.get("MYSQL","HOST"), \
+              user=config.get("MYSQL","USER"), \
+              password=base64.b64decode(config.get("MYSQL","PASSWD")), \
+              database=config.get("MYSQL","DB"))
 
   enddate = time.strftime('%Y-%m-%d')
   if (args.endD is not None):
@@ -79,27 +88,6 @@ def main():
 
   startdate_t = startdate + ' 00:00:00'
   enddate_t = enddate + ' 23:59:59'
-
-  ##### Kmalloc ####
-  if args.kmalloc:
-    import csv
-    timestamps = []
-    hosts = []
-    with open(args.kmalloc, mode='r') as infile:
-      reader = csv.reader(infile)
-      headers = next(reader, None)
-      i_time = headers.index('_time')
-      i_host = headers.index('host')
-      for row in reader:
-        timestamps.append(row[i_time])
-        hosts.append(row[i_host])
-      infile.close()
-
-    print(timestamps)
-    print(hosts)
-
-    sys.exit(0)
-
 
   ##### Report (original XALT usage report from XALT package) #####
   if args.report:
@@ -128,11 +116,13 @@ def main():
     resultA = xalt_select_data(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
+    if not resultA:
+        sys.exit(0)
 
   #### Syslog ####
   if args.log:
     args.sw = True
-    queryA = ExecRun(cursor)
+    queryA = ExecRun(conn)
     queryA.build(args, startdate_t, enddate_t)
     resultA  = queryA.report_by(args)
     #pprint(resultA)
@@ -146,22 +136,22 @@ def main():
   args.username = True if args.group else args.username
   args.sw = False if args.module or args.execpath or args.library else args.sw 
   if not resultA and args.sw:
-    queryA = ExecRun(cursor)
+    queryA = ExecRun(conn)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
   
   if not resultA and args.execpath:
-    queryA = ExecRun(cursor)
+    queryA = ExecRun(conn)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 
   if not resultA and args.module:
-    queryA = Module(cursor)
+    queryA = Module(conn)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 
   if not resultA and args.library:
-    queryA = Library(cursor)
+    queryA = Library(conn)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 
