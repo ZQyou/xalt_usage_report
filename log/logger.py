@@ -9,8 +9,8 @@ class LoggerAdapter(logging.LoggerAdapter):
       {
         'database': database,
         'syshost': syshost,
-        'year': None,
-        'month': None,
+#       'year': None,
+#       'month': None,
         'software': None,
         'executables': None,
         'cpuhours': 0,
@@ -33,8 +33,8 @@ def syslog_logging(database, syshost, extra=[], handler='stdout'):
 #   'sw_usage_dev2: '
     'syshost=%(syshost)s '
     'database=%(database)s '
-    'year=%(year)s '
-    'month=%(month)s '
+#   'year=%(year)s '
+#   'month=%(month)s '
     'software=%(software)s '
     'executables=%(executables)s '
     'cpuhours=%(cpuhours)s '
@@ -52,10 +52,10 @@ def syslog_logging(database, syshost, extra=[], handler='stdout'):
   if handler == 'stdout':
     syslog = logging.StreamHandler(stream=sys.stdout)
   elif handler == 'syslog':
-    raise Exception("syslog_loggin: unsupported handler type %s" % handler)
+    raise Exception("syslog_logging: handler type %s is disabled" % handler)
     #syslog = logging.handlers.SysLogHandler(address='/dev/log')
   else:
-    raise Exception("syslog_loggin: unsupported handler type %s" % handler)
+    raise Exception("syslog_logging: unsupported handler type %s" % handler)
 
   syslog.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
   _logger.addHandler(syslog)
@@ -92,8 +92,8 @@ if __name__ == '__main__':
   database = 'pbsacct'
   handler = 'stdout'
   extra = [{
-    'year': 2018,
-    'month': 11,
+#   'year': 2018,
+#   'month': 11,
     'software': 'vasp',
     'executables': 'VASP',
     'cpuhours':  267944,

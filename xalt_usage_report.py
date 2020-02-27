@@ -1,131 +1,54 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
-from __future__ import print_function
-import os, sys, base64
-import MySQLdb, argparse
-import time
-from datetime import datetime, timedelta
-from pprint import pprint
-import pymysql
+import os, sys
 
 dirNm = os.environ.get("OSC_XALT_DIR","./")
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "libexec")))
 sys.path.insert(1,os.path.realpath(os.path.join(dirNm, "site")))
 
+from sql import CmdLineOptions, Sql
+from log import syslog_logging
 from query import *
-from util import *
-from report import *
-
-syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
-
-class CmdLineOptions(object):
-  """ Command line Options class """
-
-  def __init__(self):
-    """ Empty Ctor """
-    pass
-  
-  def execute(self):
-    """ Specify command line arguments and parse the command line"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--confFn",  dest='confFn',    action="store",       default = "xalt_db.conf", help="db name")
-    parser.add_argument("--start",   dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
-    parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
-    parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="syshost")
-    parser.add_argument("--sw",      dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
-    parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")
-    parser.add_argument("--execpath",dest='execpath',  action="store_true",                            help="print executable paths; this is break-down of --sw mode")
-    parser.add_argument("--library", dest='library',   action="store_true",                            help="print library usage")
-    parser.add_argument("--sql",     dest='sql',       action="store",       default = "%",            help="SQL pattern for matching modules or executables; '%%' is SQL wildcard character")
-    parser.add_argument("--num",     dest='num',       action="store",       default = 20,             help="top number of entries to report")
-    parser.add_argument("--sort",    dest='sort',      action="store",       default = None,           help="sort the result by cpuhours (default) | users | jobs | date")
-    parser.add_argument("--asc",     dest='asc',       action="store_true",                            help="ascending sort")
-    parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
-    parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
-    parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
-    parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
-    parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
-    parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")
-    parser.add_argument("--dbg",     dest='dbg',       action="store",       default = None,           help="full SQL command (DEBUG)")
-    parser.add_argument("--log",     dest='log',       action="store",       default = None,           help="dump the result to log: stdout | syslog")
-    parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
-    parser.add_argument("--data",    dest='data',      action="store",       default = None,           help="list data by given columns")
-    parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
-    parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
-    parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
-    args = parser.parse_args()
-    return args
-
 
 def main():
-  ##### Configuration #####
-  args    = CmdLineOptions().execute()
-  config  = xalt_conf(args.confFn)
-  cursor  = None
-  conn    = None
-  if args.report or args.dbg or args.show:
-      conn = MySQLdb.connect(
-              config.get("MYSQL","HOST"), \
-              config.get("MYSQL","USER"), \
-              base64.b64decode(config.get("MYSQL","PASSWD")), \
-              config.get("MYSQL","DB"))
-      cursor = conn.cursor()
-  else:
-      conn = pymysql.connect(
-              host=config.get("MYSQL","HOST"), \
-              user=config.get("MYSQL","USER"), \
-              password=base64.b64decode(config.get("MYSQL","PASSWD")), \
-              database=config.get("MYSQL","DB"))
-
-  enddate = time.strftime('%Y-%m-%d')
-  if (args.endD is not None):
-    enddate = args.endD
-
-  # Generate weekly report by default
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime('%Y-%m-%d');
-  if (args.startD is not None):
-    startdate = args.startD
-
-  startdate_t = startdate + ' 00:00:00'
-  enddate_t = enddate + ' 23:59:59'
-
-  ##### Report (original XALT usage report from XALT package) #####
-  if args.report:
-    print("--------------------------------------------")
-    print("XALT REPORT from",startdate,"to",enddate)
-    print("--------------------------------------------")
-    print("")
-    print("")
-    full_report(cursor, args, startdate_t, enddate_t)
-    sys.exit(0)
+  ##### Setup #####
+  args = CmdLineOptions().execute()
+  sql = Sql(args)
+  sql.connect()
+  startdate, enddate, startdate_t, enddate_t = xalt_set_time_range(
+          args.startD, args.endD, int(args.days))
 
   resultA = None
   queryA = None
   headerA = None
   statA = None
 
+  #### Update Local Databae ####
+  if args.topq:
+    queryA = Xalt(sql.conn)
+    queryA.to_parquet(args, startdate_t, enddate_t)
+    sys.exit(0)
+
   #### DEBUG ####
   if args.show:
     if args.show != "tables":
-      resultA = describe_table(cursor, args)
+      resultA = sql.describe_table()
       headerA = "\nDescribe the table '%s'\n" % args.show
     else:
-      resultA = show_tables(cursor)
+      resultA = sql.show_tables()
       headerA = "\nAvailable tables in database\n"
-  if args.data:
-    resultA = xalt_select_data(cursor, args, startdate_t, enddate_t)
-  if args.dbg:
-    resultA = user_sql(cursor, args)
+  if args.query:
+    resultA = sql.user_query()
     if not resultA:
         sys.exit(0)
 
   #### Syslog ####
   if args.log:
     args.sw = True
-    queryA = ExecRun(conn)
+    args.module = args.execpath = False
+    queryA = Xalt(sql.conn)
     queryA.build(args, startdate_t, enddate_t)
-    resultA  = queryA.report_by(args)
-    #pprint(resultA)
+    resultA = queryA.report_by(args)
     print("--------------------------------------------")
     print("XALT Software Usage from",startdate,"to",enddate)
     print("--------------------------------------------")
@@ -135,25 +58,15 @@ def main():
   #### Software Usage ####
   args.username = True if args.group else args.username
   args.sw = False if args.module or args.execpath or args.library else args.sw 
-  if not resultA and args.sw:
-    queryA = ExecRun(conn)
-    queryA.build(args, startdate_t, enddate_t)
-    headerA, resultA, statA = queryA.report_by(args)
-  
-  if not resultA and args.execpath:
-    queryA = ExecRun(conn)
+  if not resultA:
+    queryA = Xalt(sql.conn)
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
 
-  if not resultA and args.module:
-    queryA = Module(conn)
-    queryA.build(args, startdate_t, enddate_t)
-    headerA, resultA, statA = queryA.report_by(args)
-
-  if not resultA and args.library:
-    queryA = Library(conn)
-    queryA.build(args, startdate_t, enddate_t)
-    headerA, resultA, statA = queryA.report_by(args)
+# if not resultA and args.library:
+#   queryA = Library(sql.conn)
+#   queryA.build(args, startdate_t, enddate_t)
+#   headerA, resultA, statA = queryA.report_by(args)
 
   if resultA and args.csv:
     print("XALT Software Usage from",startdate,"to",enddate)

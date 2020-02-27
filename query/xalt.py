@@ -1,49 +1,12 @@
-from operator import itemgetter
-from .util import get_osc_group
+from .xalt_format import ExecRunFormat, ModuleFormat
 from .xalt_sw_mapping import sw_mapping
+from .util import get_osc_group
 import pandas as pd
 from time import time 
 from glob import glob
 import sys
 
-def ExecRunFormat(args):
-  top_thing = "software/executables" if args.sw else "executable paths"
-  headerA = "\nTop %s %s sorted by %s\n" % (str(args.num), top_thing, args.sort)
-  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users"]
-  fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
-  orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-  if args.username:
-    headerA = "\nTop %s %s used by users\n" % (str(args.num), top_thing)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
-    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-    if args.group:
-       headerT.insert(-1, "Group")
-  if args.user:
-    headerA = "\nTop %s %s used by %s\n" % (str(args.num), top_thing, args.user)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs"]
-    fmtT    = ["%.2f", "%.2f", "%d"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs']
-  if args.jobs:
-    headerA = "\nFirst %s jobs sorted by %s\n" % (str(args.num), args.sort)
-    if args.user:
-      headerA = "\nFirst %s jobs used by %s\n" % (str(args.num), args.user)
-    headerT = ["Date", "JobID", "CPUHrs", "NodeHrs", "# GPUs", "# Cores", "# Threads"]
-    fmtT    = ["%s", "%s", "%.2f", "%.2f", "%d", "%d", "%d"]
-    orderT  = ['date', 'jobs', 'cpuhours', 'nodehours', 'n_gpus', 'n_cores', 'n_thds']
-
-  headerT += ["Software/Executable"] if args.sw else ["ExecPath"]
-
-  headerA += '\n'
-  if args.sql != '%':
-    headerA += '* Search pattern: %s\n' % args.sql
-  if args.gpu:
-    headerA += '* GPU jobs only\n'
-  headerA += '* WARNING: CPUHrs is executable walltime x # cores x # threads, not actual CPU utilization\n'
-
-  return [headerA, headerT, fmtT, orderT]
-
-class ExecRun:
+class Xalt:
   def __init__(self, connect):
     self.__modA  = []
     self.__conn = connect
@@ -59,11 +22,12 @@ class ExecRun:
     exec_path   AS executables
     FROM xalt_run WHERE syshost LIKE %s
     AND date >= %s and date <= %s
-    AND LOWER(exec_path) LIKE %s 
     """
-
+    self.__path = '/fs/scratch/PZS0710/zyou/sw'
+  
   def build(self, args, startdate, enddate):
     # Object and user searching
+    sw_key = 'executables'
     sql_re = args.sql.lower()
     sw_re = None 
     if sql_re != '%':
@@ -75,10 +39,14 @@ class ExecRun:
       search_user = "AND user LIKE '%s' " % args.user
 
     query = self.__query + search_user 
-    #print(query)
+    if args.module:
+      sw_key = 'modules'
+      query = query + ' AND LOWER(module_name) LIKE %s ' 
+    else:
+      query = query + ' AND LOWER(exec_path) LIKE %s ' 
+    #print(query)     
  
-    db_path = '/fs/scratch/PZS0710/zyou/tmp'
-    db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
+    db_list = [ f.split('/')[-1] for f in glob(self.__path + '/*.pq', recursive=False) ]
 
     connect = self.__conn
     queryA = df = q = None
@@ -102,11 +70,11 @@ class ExecRun:
         # Filtering
         if sw_re and args.user:
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
-                     (df['executables'].str.contains("(?i)%s" % sw_re)) & \
+                     (df[sw_key].str.contains("(?i)%s" % sw_re)) & \
                      (df['users'] == args.user)
         elif sw_re:
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
-                     (df['executables'].str.contains("(?i)%s" % sw_re)) 
+                     (df[sw_key].str.contains("(?i)%s" % sw_re)) 
         elif args.user:
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
                      (df['users'] == args.user)
@@ -121,13 +89,9 @@ class ExecRun:
         q = pd.read_sql(query, connect,
               params=(args.syshost, startdate[i], enddate[i], sql_re))
 
-      print("Query time (%s - %s): %.2f" % (startdate[i], enddate[i], float(time() - t0)))
+      print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
 
       queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
-
-    #t0 = time()
-    #queryA.to_parquet("/fs/scratch/PZS0710/zyou/tmp/202001xalt.parquet", engine='pyarrow')
-    #print("Parquet time: %f" % round(time() - t0))
 
     queryA['cpuhours'] = queryA['run_time'] * queryA['n_thds'] * queryA['n_cores']
     queryA['nodehours'] = queryA['run_time'] * queryA['n_nodes']
@@ -146,11 +110,11 @@ class ExecRun:
       df['nodehours'] = df['nodehours'].divide(3600).round(2)
       args.sort = 'date' if not args.sort else args.sort
     else:
-      dg = queryA.groupby(['users', 'executables']) if args.username else queryA.groupby('executables')
+      dg = queryA.groupby(['users', sw_key]) if args.username else queryA.groupby(sw_key)
       df = dg['cpuhours'].sum().divide(3600).round(2).to_frame()
       df['nodehours'] = dg['nodehours'].sum().divide(3600).round(2)
       df['jobs'] = dg['jobs'].nunique()
-      if not args.sw:
+      if args.execpath:
         df['modules'] = dg['modules'].unique()
       if not args.username:
         df['users'] = dg['users'].nunique()
@@ -159,12 +123,12 @@ class ExecRun:
     #print(df.sort_values(by=args.sort, ascending=args.asc).head())
     self.__modA = list(df.sort_values(by=args.sort, ascending=args.asc).reset_index().T.to_dict().values())
 
-    print("Build time: %f" % round(time() - t0))
+    print("Build time: %.2fs" % float(time() - t0))
     print("=============\n")
 
   def report_by(self, args):
     resultA = []
-    headerA, headerT, fmtT, orderT = ExecRunFormat(args)
+    headerA, headerT, fmtT, orderT = ModuleFormat(args) if args.module else ExecRunFormat(args)
     hline  = list(map(lambda x: "-"*len(x), headerT))
     resultA.append(headerT)
     resultA.append(hline)
@@ -180,10 +144,11 @@ class ExecRun:
     for i in range(num):
       entryT = modA[i]
       resultA.append(list(map(lambda x, y: x % entryT[y], fmtT, orderT)))
-      if args.sw:
-        resultA[-1].append(entryT['executables'])
-      else:
-        resultA[-1].append(entryT['executables'] + " %s" % entryT['modules'])
+      if not args.module:
+        if args.sw:
+          resultA[-1].append(entryT['executables'])
+        else:
+          resultA[-1].append(entryT['executables'] + " %s" % entryT['modules'])
       if args.group:
         group = get_osc_group(entryT['users'])
         resultA[-1].insert(-1, group)
@@ -193,3 +158,36 @@ class ExecRun:
     if not args.jobs:
         statA['jobs'] = sum([x['jobs'] for x in modA])
     return [headerA, resultA, statA]
+
+  def to_parquet(self, args, startdate, enddate):
+    connect = self.__conn
+    query = self.__query
+    db_name = queryA = None
+    year0 = month0 = '0'
+    print("\nData processing ....")
+    print("=============")
+    for i in range(len(startdate)):
+      year, month = startdate[i].split('-')[0:2]
+      if year0 != year or month0 != month:
+        if isinstance(queryA, pd.DataFrame):
+          print(queryA.info(verbose=False))
+          t0 = time()
+          queryA.to_parquet(self.__path + '/' + db_name, engine='pyarrow')
+          print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+        queryA = None
+        year0 = year 
+        month0 = month
+        print("Importing data %s-%s@%s from xalt_run" % (year, month, args.syshost))
+      db_name = '%04d%02d_xalt_%s.pq' % (int(year), int(month), args.syshost)
+      t0 = time()
+      q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
+      print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
+      queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
+
+    if isinstance(queryA, pd.DataFrame):
+      print(queryA.info(verbose=False))
+      t0 = time()
+      queryA.to_parquet(self.__path + '/' + db_name, engine='pyarrow', compression='snappy')
+      print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+    
+    print("=============\n")
