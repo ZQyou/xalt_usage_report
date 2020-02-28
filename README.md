@@ -13,7 +13,7 @@ source /usr/local/venv/software_usage/$LMOD_SYSTEM_NAME/bin/activate
 
 # XALT
 ## Description 
-`xalt_usage_report.py` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.
+`xalt_usage_report` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.
 
 ## Note for output
 * `CPUHrs`: walltime x # cores x # threads, NOT actual CPU utilization.
@@ -38,15 +38,15 @@ source /usr/local/venv/software_usage/$LMOD_SYSTEM_NAME/bin/activate
 ## Use cases
 Get lammps usage within one week
 ```
-xalt_usage_report.py --sql lammps
+xalt_usage_report --sql lammps
 ```
 Get the module usage sorted by \# jobs from now to 2 days back
 ```
-xalt_usage_report.py --module --sorted jobs --days 2
+xalt_usage_report --module --sorted jobs --days 2
 ```
 Find what users using lammps
 ```
-xalt_usage_report.py --module --sql %lammps% --username
+xalt_usage_report --module --sql %lammps% --username
 ```
 
 # PBSACCT
