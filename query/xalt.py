@@ -46,7 +46,8 @@ class Xalt:
       query = query + ' AND LOWER(exec_path) LIKE %s ' 
     #print(query)     
  
-    db_list = [ f.split('/')[-1] for f in glob(self.__path + '/*.pq', recursive=False) ]
+    db_path = self.__path + '/xalt/%s' % args.syshost
+    db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
 
     connect = self.__conn
     queryA = df = q = None
@@ -60,7 +61,7 @@ class Xalt:
         df = None
         year0 = year 
         month0 = month
-      db_name = '%04d%02d_xalt_%s.pq' % (int(year), int(month), args.syshost)
+      db_name = '%04d%02d.pq' % (int(year), int(month))
       t0 = time()
       with_db = False if args.nopq else (db_name in db_list)
       if with_db:
@@ -162,6 +163,7 @@ class Xalt:
   def to_parquet(self, args, startdate, enddate):
     connect = self.__conn
     query = self.__query
+    db_path = self.__path + '/xalt/%s' % args.syshost
     db_name = queryA = None
     year0 = month0 = '0'
     print("\nData processing ....")
@@ -172,13 +174,13 @@ class Xalt:
         if isinstance(queryA, pd.DataFrame):
           print(queryA.info(verbose=False))
           t0 = time()
-          queryA.to_parquet(self.__path + '/' + db_name, engine='pyarrow')
+          queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow')
           print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
         queryA = None
         year0 = year 
         month0 = month
         print("Importing data %s-%s@%s from xalt_run" % (year, month, args.syshost))
-      db_name = '%04d%02d_xalt_%s.pq' % (int(year), int(month), args.syshost)
+      db_name = '%04d%02d.pq' % (int(year), int(month))
       t0 = time()
       q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
       print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
@@ -187,7 +189,7 @@ class Xalt:
     if isinstance(queryA, pd.DataFrame):
       print(queryA.info(verbose=False))
       t0 = time()
-      queryA.to_parquet(self.__path + '/' + db_name, engine='pyarrow', compression='snappy')
+      queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow', compression='snappy')
       print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
     
     print("=============\n")
