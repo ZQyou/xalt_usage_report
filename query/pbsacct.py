@@ -1,4 +1,3 @@
-from __future__ import print_function
 from operator import itemgetter
 from .util import get_osc_group
 from datetime import datetime
@@ -146,7 +145,7 @@ class Software:
   def report_by(self, args):
     resultA = []
     headerA, headerT, fmtT, orderT = SoftwareFormat(args)
-    hline  = map(lambda x: "-"*len(x), headerT)
+    hline  = list(map(lambda x: "-"*len(x), headerT))
     resultA.append(headerT)
     resultA.append(hline)
 
@@ -175,7 +174,7 @@ class Software:
 
     for i in range(num):
       entryT = sortA[i]
-      resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
+      resultA.append(list(map(lambda x, y: x % entryT[y], fmtT, orderT)))
 
     statA = {'num': len(sortA),
              'cpuhours': sum([x['cpuhours'] for x in sortA])}

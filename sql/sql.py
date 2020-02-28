@@ -3,19 +3,22 @@ from base64 import b64decode
 import pymysql, base64
 
 class Sql(object):
-  def __init__(self, args):
+  def __init__(self, args, db=None):
      self.args = args
-     self.config = xalt_conf(args.confFn)
+     self.config = pbsacct_conf(args.syshost, args.confFn) \
+             if db == 'pbsacct' else xalt_conf(args.confFn)
      self.conn = None
      self.cursor = None
+     self.db = db if db == 'pbsacct' else 'xalt_%s' % args.syshost
+     self.dbconf = db if db == 'pbsacct' else 'MYSQL'
 
   def connect(self):
     config = self.config
     self.conn = pymysql.connect(
-        host=config.get("MYSQL","HOST"), \
-        user=config.get("MYSQL","USER"), \
-        password=b64decode(config.get("MYSQL","PASSWD")), \
-        database="xalt_%s" % self.args.syshost)
+        host=config.get(self.dbconf,"HOST"), \
+        user=config.get(self.dbconf,"USER"), \
+        password=b64decode(config.get(self.dbconf,"PASSWD")), \
+        database=self.db)
     self.cursor = self.conn.cursor()
 
   def describe_table(self):

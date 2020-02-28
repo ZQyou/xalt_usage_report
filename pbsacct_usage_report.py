@@ -1,12 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
-from __future__ import print_function
-import os, sys, base64
-import MySQLdb, argparse
-import time
-from pprint import pprint
+import os, sys
+import pymysql, argparse
+from sql import Sql
+from log import syslog_logging
 from query import *
-from util import *
 
 syshost = os.environ.get("LMOD_SYSTEM_NAME", "%")
 
@@ -52,32 +50,20 @@ class CmdLineOptions(object):
 
 def main():
   ##### Configuration #####
-  args    = CmdLineOptions().execute()
-  config  = pbsacct_conf(syshost, args.confFn)
-  conn = MySQLdb.connect        \
-         (config.get("pbsacct","HOST"), \
-          config.get("pbsacct","USER"), \
-          base64.b64decode(config.get("pbsacct","PASSWD")), \
-          config.get("pbsacct","DB"))
-  cursor = conn.cursor()
-
-  startdate, enddate, startdate_t, enddate_t = set_timerange(args)
+  args = CmdLineOptions().execute()
+  sql  = Sql(args, db='pbsacct')
+  sql.connect()
+  cursor = sql.cursor
+  startdate, enddate, startdate_t, enddate_t = pbs_set_time_range(args)
 
   headerA = None
   resultA = None
   statA = None
 
-  #### Kmalloc ####
-  if args.kmalloc:
-    _kmalloc = kmalloc(args.kmalloc)
-    _kmalloc.print_by_host(cursor, args)
-    sys.exit(0)
-
   if args.log:
     queryA = Software(cursor)
     queryA.build(args, startdate_t, enddate_t)
     resultA = queryA.report_by(args)
-    #pprint(resultA)
     print("--------------------------------------------")
     print("PBSACCT Software Usage from",startdate,"to",enddate)
     print("--------------------------------------------")
@@ -92,10 +78,10 @@ def main():
     else:
       resultA = show_tables(cursor)
       headerA = "\nAvailable tables in database\n"
-  if args.data:
-    resultA = pbsacct_select_jobs(cursor, args, startdate_t, enddate_t)
   if args.dbg:
     resultA = user_sql(cursor, args)
+    if not resultA:
+        sys.exit(0)
 
   #if args.jobid and args.gmetric:
   if args.jobid:
