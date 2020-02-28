@@ -1,3 +1,16 @@
+# Install
+## Setup virtual environment
+These software usage tools requires Python 3 modules that not available on system. To avoid package conflict with the system, create isolated Python environment:
+```
+module load python/3.6-conda5.2
+mkdir -p /usr/local/software_usage/venv/$LMOD_SYSTEM_NAME
+python -m venv --without-pip /usr/local/reframe/vevn/$LMOD_SYSTEM_NAME
+source /usr/local/venv/software_usage/$LMOD_SYSTEM_NAME/bin/activate
+($LMOD_SYSTEM_NAME) > curl https://bootstrap.pypa.io/get-pip.py |python
+($LMOD_SYSTEM_NAME) > pip install -r requirements.txt
+($LMOD_SYSTEM_NAME) > deactivate
+```
+
 # XALT
 ## Description 
 `xalt_usage_report.py` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.

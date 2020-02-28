@@ -18,6 +18,9 @@ start_t=`printf "%d-%02d-01" $year $month`
 end_t=`printf "%d-%02d-%d" $year $month ${mlen[$month]}`
 f_month=`printf "%02d" $month`
 
+logfile="usage/${database}/${fh}${system}.log"
+tmpfile="usage/${database}/${fh}${system}.log.tmp"
+
 if [ "$database" = "pbs" ]; then
   echo ./pbsacct_usage_report.py --start $start_t --end $end_t --num 50 --syshost $system --log $logger
   ./pbsacct_usage_report.py --start $start_t --end $end_t --num 50 --syshost $system --log $logger |grep ^syshost |tee usage/pbs/${fh}${system}.log
@@ -25,7 +28,7 @@ fi
 
 if [ "$database" = "xalt" ]; then
   echo ./xalt_usage_report.py --start $start_t --end $end_t --num 50 --syshost $system --log $logger
-  time \
-  (./xalt_usage_report.py --start $start_t --end $end_t --num 50 --syshost $system --log $logger |grep ^syshost |while read x; do echo $x year=$year month=$f_month; done) |\
-    tee usage/xalt/${fh}${system}.log
+  ./xalt_usage_report.py --start $start_t --end $end_t --num 50 --syshost $system --log $logger |& tee $tmpfile
+  grep ^syshost $tmpfile |while read x; do echo $x year=$year month=$f_month; done |tee $logfile
+  test -f $tmpfile && rm -f $tmpfile
 fi

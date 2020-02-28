@@ -1,0 +1,16 @@
+#!/bin/bash
+
+trap "exit 1" TERM INT
+
+# Quit if any function returns an non-zero status.
+set -eE
+set -o pipefail
+
+module reset >& /dev/null
+script_home="`dirname $(readlink -f $0)`"
+set +eE
+source $script_home/venv/$LMOD_SYSTEM_NAME/bin/activate
+python $script_home/xalt_usage_report.py "$@"
+status=$?
+deactivate
+set -eE
