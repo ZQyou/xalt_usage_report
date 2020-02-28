@@ -51,7 +51,7 @@ xalt_usage_report --module --sql %lammps% --username
 
 # PBSACCT
 ## Description 
-`pbsacct_usage_report.py` analyzes PBSACCT database and generates a software usage report. By default the script generates a week-to-date report for the cluster where you login. Use following options to filter or change the output.
+`pbsacct_usage_report` analyzes PBSACCT database and generates a software usage report. By default the script generates a week-to-date report for the cluster where you login. Use following options to filter or change the output.
 
 ## Note for output
 * `CPUHrs`: walltime x # procs
