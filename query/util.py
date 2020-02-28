@@ -12,21 +12,19 @@ def get_osc_group(username):
   stdout, stderr = process.communicate()
   return search(group_re, stdout.decode('utf-8')).group(1)
 
-def pbs_set_time_range(args, enddate=None, enddate_t=None):
-  if not enddate:
-    enddate = strftime("%Y-%m-%d")
-    if args.endD is not None:
-      enddate = args.endD
+def pbs_set_time_range(startD, endD, days=7):
+  enddate = strftime("%Y-%m-%d")
+  if endD is not None:
+    enddate = endD
   
   # Generate week-to-date report by default
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(int(args.days))).strftime("%Y-%m-%d")
-  if args.startD is not None:
-    startdate = args.startD
+  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(days-1)).strftime("%Y-%m-%d")
+  if startD is not None:
+    startdate = startD
 
   isotimefmt = "%Y-%m-%dT%H:%M:%S"
   startdate_t = startdate + "T00:00:00"
-  if not enddate_t:
-    enddate_t = enddate + "T23:59:59"
+  enddate_t = enddate + "T23:59:59"
   startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
   enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
 

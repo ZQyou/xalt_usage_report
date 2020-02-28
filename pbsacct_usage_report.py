@@ -54,7 +54,8 @@ def main():
   sql  = Sql(args, db='pbsacct')
   sql.connect()
   cursor = sql.cursor
-  startdate, enddate, startdate_t, enddate_t = pbs_set_time_range(args)
+  startdate, enddate, startdate_t, enddate_t = pbs_set_time_range(
+          args.startD, args.endD, int(args.days))
 
   headerA = None
   resultA = None

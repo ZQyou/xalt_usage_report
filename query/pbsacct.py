@@ -1,7 +1,8 @@
 from operator import itemgetter
 from .util import get_osc_group
 from datetime import datetime
-import json
+from time import time
+#import json
 
 def SoftwareFormat(args):
   headerA = "\nTop %s software sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
@@ -120,8 +121,14 @@ class Software:
     #print(query)
 
     cursor  = self.__cursor
+    print("\nData processing ....")
+    print("=============")
+    t0 = time()
     cursor.execute(query, (args.syshost, args.sql.lower()))
     resultA = cursor.fetchall()
+    print("Query time: %.2fs" % (float(time() - t0)))
+    print("=============\n")
+
     modA = self.__modA
     for cpuhours, corehours, nodehours, mem, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:
       efficiency = 0 if cpuhours == 0 else corehours/cpuhours

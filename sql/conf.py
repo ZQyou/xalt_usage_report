@@ -41,7 +41,7 @@ class CmdLineOptions(object):
     parser.add_argument("--show",    dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
-    parser.add_argument("--days",    dest='days',      action="store",       default = 6,              help="report from now to DAYS back")
+    parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
     args = parser.parse_args()
     return args
 
