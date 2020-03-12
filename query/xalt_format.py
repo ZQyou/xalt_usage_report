@@ -26,7 +26,7 @@ def ExecRunFormat(args):
 
   headerT += ["Software/Executable"] if args.sw else ["ExecPath"]
 
-  headerA += '\n'
+  headerA += '\n* Host: %s\n' % args.syshost
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
   if args.gpu:
@@ -60,7 +60,7 @@ def ModuleFormat(args):
     fmtT    = ["%s", "%s", "%.2f", "%.2f", "%d", "%d", "%d", "%s"]
     orderT  = ['date', 'jobs', 'cpuhours', 'nodehours', 'n_gpus', 'n_cores', 'n_thds', 'modules']
 
-  headerA += '\n'
+  headerA += '\n* Host: %s\n' % args.syshost
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
   if args.gpu:
