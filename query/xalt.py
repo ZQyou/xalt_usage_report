@@ -6,6 +6,8 @@ from time import time
 from glob import glob
 import sys
 
+database_path = '/fs/project/PZS0710/database'
+
 class Xalt:
   def __init__(self, connect):
     self.__modA  = []
@@ -23,7 +25,7 @@ class Xalt:
     FROM xalt_run WHERE syshost LIKE %s
     AND date >= %s and date <= %s
     """
-    self.__path = '/fs/scratch/PZS0710/zyou/sw'
+    self.__path = database_path
   
   def build(self, args, startdate, enddate):
     # Object and user searching
