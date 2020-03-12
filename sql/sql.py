@@ -1,6 +1,7 @@
 from .conf import xalt_conf, pbsacct_conf
 from base64 import b64decode
 import pymysql, base64
+from pprint import pprint
 
 class Sql(object):
   def __init__(self, args, db=None):
@@ -34,12 +35,16 @@ class Sql(object):
     return resultA
 
   def user_query(self):
-    query = self.args.dbg 
+    query = self.args.query
 #   query = args.dbg + \
 #   """
 #   ORDER BY date DESC
 #   """ + \
 #   "LIMIT " + str(args.num)
     self.cursor.execute(query)
-    resultA = self.cursor.fetchall()
+    header = [i[0] for i in self.cursor.description]
+    hline  = list(map(lambda x: "-"*len(x), header))
+    resultA = list(self.cursor.fetchall())
+    resultA.insert(0, hline)
+    resultA.insert(0, header)
     return resultA
