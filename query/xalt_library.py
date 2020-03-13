@@ -7,8 +7,6 @@ def LibraryFormat(args):
   headerT = ["# Libs", "Modules", "LibPath"]
   fmtT    = ["%d", "%s"]
   orderT  = ['n_libs', 'modules']
-# fmtT    = ["%d", "%s", "%s"]
-# orderT  = ['n_libs', 'modules', 'libpaths']
 
   headerA += '\n* Host: %s\n' % args.syshost
   if args.sql != '%':
@@ -52,11 +50,10 @@ class Library:
     t0 = time()
     dg = queryA.groupby('modules')
     df = dg.size().to_frame('n_libs')
-#   df['modules'] = dg['modules'].unique()
     df['libpaths'] = dg['libpaths'].unique()
 #   df['n_libs'] = dg['libpaths'].count().to_frame('n_libs')
 
-    print(df.sort_values(by='n_libs', ascending=args.asc).head())
+    #print(df.sort_values(by='n_libs', ascending=args.asc).head())
     self.__modA = list(df.sort_values(by='n_libs', ascending=args.asc).reset_index().T.to_dict().values())
 
     print("Build time: %.2fs" % float(time() - t0))
