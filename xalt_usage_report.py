@@ -21,7 +21,7 @@ def main():
   resultA = None
   queryA = None
   headerA = None
-  statA = None
+  statsA = None
 
   #### Update Local Databae ####
   if args.topq:
@@ -58,15 +58,14 @@ def main():
   #### Software Usage ####
   args.username = True if args.group else args.username
   args.sw = False if args.module or args.execpath or args.library else args.sw 
-  if not resultA:
+  if args.library:
+    queryA = Library(sql.conn)
+  else:
     queryA = Xalt(sql.conn)
+
+  if not resultA:
     queryA.build(args, startdate_t, enddate_t)
     headerA, resultA, statA = queryA.report_by(args)
-
-# if not resultA and args.library:
-#   queryA = Library(sql.conn)
-#   queryA.build(args, startdate_t, enddate_t)
-#   headerA, resultA, statA = queryA.report_by(args)
 
   if resultA and args.csv:
     print("XALT Software Usage from",startdate,"to",enddate)
@@ -84,15 +83,15 @@ def main():
     print(bt.build_tbl());
     print()
 
-  if statA:
-    num_unlist = statA['num'] - int(args.num)
+  if statsA:
+    num_unlist = statsA['num'] - int(args.num)
     if num_unlist > 0:
       print("Unlisted entries: %d" % num_unlist)
-    print("Total entries: %d" % statA['num'])
-    if 'jobs' in statA:
-      print("Total jobs: %d" % statA['jobs'])
-    if 'cpuhours' in statA:
-      print("Total cpuhours: %.2f" % statA['cpuhours'])
+    print("Total entries: %d" % statsA['num'])
+    if 'jobs' in statsA:
+      print("Total jobs: %d" % statsA['jobs'])
+    if 'cpuhours' in statsA:
+      print("Total cpuhours: %.2f" % statsA['cpuhours'])
     print()
 
 if ( __name__ == '__main__'): main()

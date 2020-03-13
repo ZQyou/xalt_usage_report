@@ -1,161 +1,87 @@
-from operator import itemgetter
-from .util import get_osc_group
+import pandas as pd
+from time import time 
 
 def LibraryFormat(args):
   top_thing = "libraries"
   headerA = "\nTop %s %s sorted by %s\n" % (str(args.num), top_thing, args.sort)
-  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users"]
-  fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
-  orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-  if args.username:
-    headerA = "\nTop %s %s used by users\n" % (str(args.num), top_thing)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
-    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
-    if args.group:
-       headerT.insert(-1, "Group")
-  if args.user:
-    headerA = "\nTop %s %s used by %s\n" % (str(args.num), top_thing, args.user)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs"]
-    fmtT    = ["%.2f", "%.2f", "%d"]
-    orderT  = ['cpuhours', 'nodehours', 'jobs']
-  if args.jobs:
-    headerA = "\nFirst %s jobs sorted by %s\n" % (str(args.num), args.sort)
-    if args.user:
-      headerA = "\nFirst %s jobs used by %s\n" % (str(args.num), args.user)
-    headerT = ["Date", "JobID", "CPUHrs", "NodeHrs"]
-    fmtT    = ["%s", "%s", "%.2f", "%.2f"]
-    orderT  = ['date', 'jobs', 'cpuhours', 'nodehours']
+  headerT = ["# Libs", "Modules", "LibPath"]
+  fmtT    = ["%d", "%s"]
+  orderT  = ['n_libs', 'modules']
+# fmtT    = ["%d", "%s", "%s"]
+# orderT  = ['n_libs', 'modules', 'libpaths']
 
-  headerT += ["Library Modules/Paths"]
-
-  headerA += '\n'
+  headerA += '\n* Host: %s\n' % args.syshost
   if args.sql != '%':
     headerA += '* Search pattern: %s\n' % args.sql
-  if args.gpu:
-    headerA += '* GPU jobs only\n'
-  headerA += '* WARNING: CPUHrs is executable walltime x # cores x # threads, not actual CPU utilization\n'
 
   return [headerA, headerT, fmtT, orderT]
 
 class Library:
-  def __init__(self, cursor):
+  def __init__(self, connect):
     self.__modA  = []
-    self.__cursor = cursor
+    self.__conn = connect
+    self.__query = """SELECT
+    timestamp, 
+    object_path AS libpaths,
+    module_name AS modules
+    FROM xalt_object WHERE syshost LIKE %s
+    AND timestamp >= %s and timestamp <= %s
+    """
 
   def build(self, args, startdate, enddate):
-    select_runtime = """
-    ROUND(SUM(t3.run_time*t3.num_cores*num_threads)/3600,2) AS cpuhours,
-    ROUND(SUM(t3.run_time*t3.num_nodes)/3600,2) AS nodehours,
-    """
-    select_jobs  = "COUNT(DISTINCT(t3.job_id)) AS n_jobs, "
-    select_user  = "COUNT(DISTINCT(t3.user)) AS n_users, "
-    search_user  = ""
-    search_gpu   = ""
-#   group_by     = "GROUP BY t1.object_path"
-    group_by     = "GROUP BY t1.module_name"
-    if args.user or args.username:
-      select_user = "t3.user, "
-      if args.user:
-        search_user = "and t3.user LIKE '%s'" % args.user
-        args.group = False
-      if args.username:
-#       group_by = "GROUP BY t3.user, t1.object_path"
-        group_by = "GROUP BY t3.user, t1.module_name"
+    sql_re = args.sql.lower()
+    query = self.__query
+    query += ' AND LOWER(module_name) LIKE %s ' 
 
-    if args.jobs:
-      select_runtime = """
-      ROUND(t3.run_time*t3.num_cores*num_threads/3600,2) AS cpuhours,
-      ROUND(t3.run_time*t3.num_nodes/3600,2) AS nodehours,
-      """
-      select_user = "t3.user, "
-      select_jobs = "t3.job_id, "
-      group_by = ""
-      args.sort = 'date' if not args.sort else args.sort
-    
-    if args.gpu:
-      search_gpu  = "and t3.num_gpus > 0 "
+    connect = self.__conn
+    queryA = df = q = None
 
-    args.sort = 'cpuhours' if not args.sort else args.sort
+    print("\nData processing ....")
+    print("=============")
+    for i in range(len(startdate)):
+      print("Importing from xalt_object")
+      t0 = time()
+      q = pd.read_sql(query, connect,
+            params=(args.syshost, startdate[i], enddate[i], sql_re))
+      print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
 
-    search_module = "and (t1.module_name is not NULL and t1.module_name != 'NULL') "
+      queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
 
-    query = """SELECT """ + \
-    select_runtime + \
-    select_jobs + \
-    select_user + \
-    """
-    t1.object_path, 
-    t1.module_name AS modules,
-    """ + \
-    """
-    t3.date
-    FROM xalt_object as t1, join_run_object as t2, xalt_run as t3 WHERE t3.syshost LIKE %s
-    and t1.obj_id = t2.obj_id and t2.run_id = t3.run_id
-    """ + \
-    search_module + \
-    search_user + \
-    """
-    and t3.date >= %s and t3.date <= %s
-    """ + \
-    search_gpu + \
-    group_by
+    print(queryA.info(verbose=False))
 
-    #print(query)
-    cursor  = self.__cursor
-    #cursor.execute(query, (args.syshost, args.sql.lower(), startdate, enddate))
-    cursor.execute(query, (args.syshost, startdate, enddate))
-    resultA = cursor.fetchall()
-    modA = self.__modA
-    for cpuhours, nodehours, jobs, users, libpath, modules, date in resultA:
-      entryT = { 'cpuhours'  : cpuhours,
-                 'nodehours' : nodehours,
-                 'jobs'      : jobs,
-                 'users'     : users,
-                 'libpath'   : libpath,
-                 'modules'   : modules,
-                 'date'      : date }
-      modA.append(entryT)
+    t0 = time()
+    dg = queryA.groupby('modules')
+    df = dg.size().to_frame('n_libs')
+#   df['modules'] = dg['modules'].unique()
+    df['libpaths'] = dg['libpaths'].unique()
+#   df['n_libs'] = dg['libpaths'].count().to_frame('n_libs')
+
+    print(df.sort_values(by='n_libs', ascending=args.asc).head())
+    self.__modA = list(df.sort_values(by='n_libs', ascending=args.asc).reset_index().T.to_dict().values())
+
+    print("Build time: %.2fs" % float(time() - t0))
+    print("=============\n")
 
   def report_by(self, args):
     resultA = []
     headerA, headerT, fmtT, orderT = LibraryFormat(args)
-    hline  = map(lambda x: "-"*len(x), headerT)
+    hline  = list(map(lambda x: "-"*len(x), headerT))
     resultA.append(headerT)
     resultA.append(hline)
 
     modA = self.__modA
-    if args.sort[0] == '_':
-      args.sort = args.sort[1:]
-      sortA = sorted(modA, key=itemgetter(args.sort))
-    else:
-      sortA = sorted(modA, key=itemgetter(args.sort), reverse=True)
-    num = min(int(args.num), len(sortA))
+    num = min(int(args.num), len(modA))
     if args.log:
       resultA = []
-      import numpy
-      date_list = [ x['date'] for x in sortA ] 
-      u_year = numpy.unique(map(lambda x: x.year, date_list))
-      u_month = numpy.unique(map(lambda x: '%02d' % x.month, date_list))
-      if len(u_year) == 1 and len(u_month) == 1: 
-        for i in range(num):
-          sortA[i]['year'] = u_year[0]
-          sortA[i]['month'] = u_month[0]
-          resultA.append(sortA[i])
-      else: 
-          print("Searching across multiple months is not available")
+      for i in range(num):
+        resultA.append(modA[i])
+
       return resultA
 
     for i in range(num):
-      entryT = sortA[i]
-      resultA.append(map(lambda x, y: x % entryT[y], fmtT, orderT))
-      resultA[-1].append(entryT['modules'])
-      if args.group:
-        group = get_osc_group(entryT['users'])
-        resultA[-1].insert(-1, group)
+      entryT = modA[i]
+      resultA.append(list(map(lambda x, y: x % entryT[y], fmtT, orderT)))
+      resultA[-1].append('[%s ...]' % entryT['libpaths'][0].strip())
 
-    statA = {'num': len(sortA),
-             'cpuhours': sum([x['cpuhours'] for x in sortA])}
-    if not args.jobs:
-        statA['jobs'] = sum([x['jobs'] for x in sortA])
-    return [headerA, resultA, statA]
+    statsA = {'num': len(modA)}
+    return [headerA, resultA, statsA]

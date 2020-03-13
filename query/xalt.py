@@ -34,7 +34,7 @@ class Xalt:
     sw_re = None 
     if sql_re != '%':
        sw_re = sql_re.replace('%','')
-       sw_re = sw_re + '$' if sql_re[-1] != '%' else sw_re
+       sw_re += '$' if sql_re[-1] != '%' else sw_re
     search_user = ""
     if args.user:
       args.group = False
@@ -43,9 +43,9 @@ class Xalt:
     query = self.__query + search_user 
     if args.module:
       sw_key = 'modules'
-      query = query + ' AND LOWER(module_name) LIKE %s ' 
+      query += ' AND LOWER(module_name) LIKE %s ' 
     else:
-      query = query + ' AND LOWER(exec_path) LIKE %s ' 
+      query += ' AND LOWER(exec_path) LIKE %s ' 
     #print(query)     
  
     db_path = self.__path + '/xalt/%s' % args.syshost
@@ -142,6 +142,7 @@ class Xalt:
       resultA = []
       for i in range(num):
         resultA.append(modA[i])
+
       return resultA
 
     for i in range(num):
@@ -152,15 +153,16 @@ class Xalt:
           resultA[-1].append(entryT['executables'])
         else:
           resultA[-1].append(entryT['executables'] + " %s" % entryT['modules'])
+
       if args.group:
         group = get_osc_group(entryT['users'])
         resultA[-1].insert(-1, group)
 
-    statA = {'num': len(modA),
+    statsA = {'num': len(modA),
              'cpuhours': sum([x['cpuhours'] for x in modA])}
     if not args.jobs:
-        statA['jobs'] = sum([x['jobs'] for x in modA])
-    return [headerA, resultA, statA]
+        statsA['jobs'] = sum([x['jobs'] for x in modA])
+    return [headerA, resultA, statsA]
 
   def to_parquet(self, args, startdate, enddate):
     connect = self.__conn
