@@ -3,7 +3,7 @@ from time import time
 
 def LibraryFormat(args):
   top_thing = "libraries"
-  headerA = "\nTop %s %s sorted by %s\n" % (str(args.num), top_thing, args.sort)
+  headerA = "\nTop %s %s sorted by n_libs\n" % (str(args.num), top_thing)
   headerT = ["# Libs", "Modules", "LibPath"]
   fmtT    = ["%d", "%s"]
   orderT  = ['n_libs', 'modules']

@@ -65,7 +65,7 @@ def main():
 
   if not resultA:
     queryA.build(args, startdate_t, enddate_t)
-    headerA, resultA, statA = queryA.report_by(args)
+    headerA, resultA, statsA = queryA.report_by(args)
 
   if resultA and args.csv:
     print("XALT Software Usage from",startdate,"to",enddate)
