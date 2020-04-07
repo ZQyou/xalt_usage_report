@@ -21,6 +21,7 @@ class CmdLineOptions(object):
     parser.add_argument("--end",     dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost", dest='syshost',   action="store",       default = syshost,        help="syshost")
     parser.add_argument("--sw",      dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
+    parser.add_argument("--count",   dest='count',     action="store_true",                            help="count entries instead of unique execpaths")
     parser.add_argument("--nopq",    dest='nopq',      action="store_true",                            help="do not use local parquet database")
     parser.add_argument("--topq",    dest='topq',      action="store_true",                            help="write query result to parquet")
     parser.add_argument("--module",  dest='module',    action="store_true",                            help="print module usage")

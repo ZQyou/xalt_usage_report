@@ -116,7 +116,10 @@ class Xalt:
       dg = queryA.groupby(['users', sw_key]) if args.username else queryA.groupby(sw_key)
       df = dg['cpuhours'].sum().divide(3600).round(2).to_frame()
       df['nodehours'] = dg['nodehours'].sum().divide(3600).round(2)
-      df['jobs'] = dg['jobs'].nunique()
+      if args.count:
+          df['jobs'] = dg['jobs'].size()
+      else:    
+          df['jobs'] = dg['jobs'].nunique()
       if args.execpath:
         df['modules'] = dg['modules'].unique()
       if not args.username:

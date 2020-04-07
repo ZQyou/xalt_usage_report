@@ -1,19 +1,20 @@
 def ExecRunFormat(args):
   top_msg = "software/executables" if args.sw else "executable paths"
+  count = "# Counts" if args.count else "# Jobs"
   headerA = "\nTop %s %s sorted by %s\n" % (str(args.num), top_msg, args.sort)
-  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users"]
+  headerT = ["CPUHrs", "NodeHrs", "%s" % count, "# Users"]
   fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
   orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
   if args.username:
     headerA = "\nTop %s %s used by users\n" % (str(args.num), top_msg)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
+    headerT = ["CPUHrs", "NodeHrs", "%s" % count, "Username"]
     fmtT    = ["%.2f", "%.2f", "%d", "%s"]
     orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
     if args.group:
        headerT.insert(-1, "Group")
   if args.user:
     headerA = "\nTop %s %s used by %s\n" % (str(args.num), top_msg, args.user)
-    headerT = ["CPUHrs", "NodeHrs", "# Jobs"]
+    headerT = ["CPUHrs", "NodeHrs", "%s" % count]
     fmtT    = ["%.2f", "%.2f", "%d"]
     orderT  = ['cpuhours', 'nodehours', 'jobs']
   if args.jobs:

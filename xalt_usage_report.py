@@ -89,7 +89,10 @@ def main():
       print("Unlisted entries: %d" % num_unlist)
     print("Total entries: %d" % statsA['num'])
     if 'jobs' in statsA:
-      print("Total jobs: %d" % statsA['jobs'])
+      if args.count and not args.jobs:
+        print("Total counts: %d" % statsA['jobs'])
+      else:
+        print("Total jobs: %d" % statsA['jobs'])
     if 'cpuhours' in statsA:
       print("Total cpuhours: %.2f" % statsA['cpuhours'])
     print()
