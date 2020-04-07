@@ -34,7 +34,8 @@ class Xalt:
     sw_re = None 
     if sql_re != '%':
        sw_re = sql_re.replace('%','')
-       sw_re += '$' if sql_re[-1] != '%' else sw_re
+       sw_re = '^' + sw_re if sql_re[0] != '%' else sw_re
+       sw_re = sw_re + '$' if sql_re[-1] != '%' else sw_re
     search_user = ""
     if args.user:
       args.group = False
@@ -76,6 +77,7 @@ class Xalt:
                      (df[sw_key].str.contains("(?i)%s" % sw_re)) & \
                      (df['users'] == args.user)
         elif sw_re:
+          print("Searching for %s" % sw_re)
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
                      (df[sw_key].str.contains("(?i)%s" % sw_re)) 
         elif args.user:
