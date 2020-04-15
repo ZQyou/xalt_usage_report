@@ -11,6 +11,31 @@ source /usr/local/venv/software_usage/$LMOD_SYSTEM_NAME/bin/activate
 ($LMOD_SYSTEM_NAME) > deactivate
 ```
 
+# Monthly Update Splunk Dashboard
+Update load XALT database (`/fs/project/PZS0710/database/xalt`) for previous month, e.g.
+```
+./xalt_usage_report --start 2020-03-01 --end 2020-03-31 --topq --syshost pitzer
+./xalt_usage_report --start 2020-03-01 --end 2020-03-31 --topq --syshost owens
+```
+Creat monthly software usage log files
+```
+./update_db.sh 2020 03 owens pbs
+./update_db.sh 2020 03 owens xalt
+./update_db.sh 2020 03 pitzer pbs
+./update_db.sh 2020 03 pitzer xalt
+```
+Upload usage data to Splunk
+```
+cd usage
+ls */*.log |while read x; do logger -t sw_usage -f $x; done
+```
+Finally don't forget to push new usage data to the repo
+```
+git add usage
+git commit -m "Add 2020 Mar data"
+git push
+```
+
 # XALT
 ## Description 
 `xalt_usage_report` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.
