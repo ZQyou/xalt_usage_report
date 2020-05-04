@@ -23,9 +23,14 @@ def SoftwareFormat(args):
     headerA = "\nFirst %s jobs sorted by %s on %s\n" % (str(args.num), args.sort, args.syshost)
     if args.user:
       headerA = "\nFirst %s jobs used by %s on %s\n" % (str(args.num), args.user, args.syshost)
-    headerT = ["Start Date", "JobID", "Jobname", "CPUHrs", "NodeHrs", "EFF", "# CPU", "Mem (MB)", "User", "Group", "Account", "Software"]
-    fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%.2f", "%s", "%d", "%s", "%s", "%s", "%s"]
-    orderT  = ['date', 'jobs', 'jobname', 'cpuhours', 'nodehours', 'efficiency', 'nproc',  'mem', 'users', 'groups', 'accounts', 'software']
+    if args.nodelist:
+      headerT = ["Start Date", "JobID", "Jobname", "CPUHrs", "NodeHrs", "EFF", "# CPU", "Mem (MB)", "User", "Group", "Account", "Software", "Nodes"]
+      fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%.2f", "%s", "%d", "%s", "%s", "%s", "%s", "%s"]
+      orderT  = ['date', 'jobs', 'jobname', 'cpuhours', 'nodehours', 'efficiency', 'nproc',  'mem', 'users', 'groups', 'accounts', 'software', 'nodelist']
+    else:
+      headerT = ["Start Date", "JobID", "Jobname", "CPUHrs", "NodeHrs", "EFF", "# CPU", "Mem (MB)", "User", "Group", "Account", "Software"]
+      fmtT    = ["%s", "%s", "%s",  "%.2f", "%.2f", "%.2f", "%s", "%d", "%s", "%s", "%s", "%s"]
+      orderT  = ['date', 'jobs', 'jobname', 'cpuhours', 'nodehours', 'efficiency', 'nproc',  'mem', 'users', 'groups', 'accounts', 'software']
 
   headerA += '\n'
   if args.sql != '%':
@@ -107,7 +112,7 @@ class Software:
     select_jobs + \
     select_user + \
     """
-    queue, nproc, jobname, sw_app, start_ts
+    queue, nproc, jobname, sw_app, start_ts, hostlist
     from Jobs where system like %s
     """ + \
     search_sw + \
@@ -130,7 +135,7 @@ class Software:
     print("=============\n")
 
     modA = self.__modA
-    for cpuhours, corehours, nodehours, mem, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts in resultA:
+    for cpuhours, corehours, nodehours, mem, jobs, users, groups, accounts, queue, nproc, jobname, software, date_ts, hostlist in resultA:
       efficiency = 0 if cpuhours == 0 else corehours/cpuhours
       entryT = { 'cpuhours'  : cpuhours,
                  'corehours' : corehours,
@@ -145,6 +150,7 @@ class Software:
                  'nproc'     : nproc,
                  'software'  : software,
                  'jobname'   : jobname,
+                 'nodelist'  : '+'.join([node.split('/')[0] for node in hostlist.split('+')]),
                  'date'      : datetime.fromtimestamp(date_ts).strftime("%Y-%m-%d %H:%M:%S")}
       modA.append(entryT)
       ### datetime.utcfromtimestamp(date_ts)

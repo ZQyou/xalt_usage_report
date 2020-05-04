@@ -6,6 +6,9 @@ trap "exit 1" TERM INT
 set -eE
 set -o pipefail
 
+echo
+echo Command line: $0 "$@"
+
 module reset >& /dev/null
 script_home="`dirname $(readlink -f $0)`"
 set +eE
