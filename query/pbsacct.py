@@ -219,9 +219,28 @@ class Job:
     for i, key in enumerate(items):
       entryT[key] =  resultA[i]
     #print(entryT)
+
+    ### grafana job view
+    # https://grafana.osc.edu/d/qc1PWAUWz/cluster-metrics?orgId=1&from=1585143879000&to=1585230303000&var-cluster=owens&var-host=o0194&var-jobid=97739570
+    isotimefmt = "%Y-%m-%dT%H:%M:%S"
+#   grafana_url = 'https://grafana.osc.edu/d/qc1PWAUWz/cluster-metrics?orgId=3'
+    grafana_url = 'https://grafana.osc.edu/d/qc1PWAUWz/cluster-metrics?'
+    grafana_params = '&from=%s000&to=%s000&var-cluster=%s&var-jobid=%s' % \
+                   (entryT['start_ts'], entryT['end_ts'], args.syshost, args.jobid)
     for k in ['submit_ts', 'start_ts', 'end_ts']:
       entryT[k] = datetime.fromtimestamp(entryT[k]).strftime("%Y-%m-%d %H:%M:%S")
-    modA.append(entryT)
+
+    import urllib.parse
+    hosts = []
+    for h in entryT['hostlist'].split('+'):
+      host = h.split('/')[0]
+      hosts.append(host)
+      print(host + ':')
+      print(grafana_url + urllib.parse.quote(grafana_params + '&var-host=%s' % host, safe='=+&'))
+      modA.append(entryT)
+
+    #print('Compare: ')
+    #print(ganglia_url + urllib.quote(compare_host + '|'.join(hosts), safe='=+&'))
 
   def report_by(self):
     modA = self.__modA

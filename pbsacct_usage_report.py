@@ -85,13 +85,8 @@ def main():
     if not resultA:
         sys.exit(0)
 
-  #if args.jobid and args.gmetric:
   if args.jobid:
     import getpass, json
-#   if not args.webuser:
-#     args.webuser = getpass.getuser()
-#   if not args.webpass:
-#     args.webpass = getpass.getpass()
     queryA = Job(cursor)
     queryA.build(args)
     resultA = queryA.report_by()
