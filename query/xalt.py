@@ -6,7 +6,7 @@ from time import time
 from glob import glob
 import sys
 
-database_path = '/fs/project/PZS0710/database'
+database_path = '/fs/ess/PZS0710/database'
 
 class Xalt:
   def __init__(self, connect):
