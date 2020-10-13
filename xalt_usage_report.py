@@ -25,7 +25,7 @@ def main():
 
   #### Update Local Databae ####
   if args.topq:
-    queryA = Xalt(sql.conn)
+    queryA = Library(sql.conn) if args.library else Xalt(sql.conn)
     queryA.to_parquet(args, startdate_t, enddate_t)
     sys.exit(0)
 

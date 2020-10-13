@@ -1,6 +1,8 @@
 import pandas as pd
 from time import time 
 
+database_path = '/fs/ess/PZS0710/database'
+
 def LibraryFormat(args):
   top_thing = "libraries"
   headerA = "\nTop %s %s sorted by n_libs\n" % (str(args.num), top_thing)
@@ -25,6 +27,7 @@ class Library:
     FROM xalt_object WHERE syshost LIKE %s
     AND timestamp >= %s and timestamp <= %s
     """
+    self.__path = database_path
 
   def build(self, args, startdate, enddate):
     sql_re = args.sql.lower()
@@ -82,3 +85,37 @@ class Library:
 
     statsA = {'num': len(modA)}
     return [headerA, resultA, statsA]
+
+  def to_parquet(self, args, startdate, enddate):
+    connect = self.__conn
+    query = self.__query
+    db_path = self.__path + '/xalt/%s' % args.syshost
+    db_name = queryA = None
+    year0 = month0 = '0'
+    print("\nData processing ....")
+    print("=============")
+    for i in range(len(startdate)):
+      year, month = startdate[i].split('-')[0:2]
+      if year0 != year or month0 != month:
+        if isinstance(queryA, pd.DataFrame):
+          print(queryA.info(verbose=False))
+          t0 = time()
+          queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow')
+          print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+        queryA = None
+        year0 = year 
+        month0 = month
+        print("Importing data %s-%s@%s from xalt_run" % (year, month, args.syshost))
+      db_name = '%04d%02d_lib.pq' % (int(year), int(month))
+      t0 = time()
+      q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
+      print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
+      queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
+
+    if isinstance(queryA, pd.DataFrame):
+      print(queryA.info(verbose=False))
+      t0 = time()
+      queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow', compression='snappy')
+      print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+    
+    print("=============\n")
