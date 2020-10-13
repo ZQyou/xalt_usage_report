@@ -34,6 +34,7 @@ class CmdLineOptions(object):
     parser.add_argument("--username",dest='username',  action="store_true",                            help="print user accounts instead of # users")
     parser.add_argument("--group",   dest='group',     action="store_true",                            help="print user accounts and groups")
     parser.add_argument("--gpu",     dest='gpu',       action="store_true",                            help="print GPU usage")
+    parser.add_argument("--mpi",     dest='mpi',       action="store_true",                            help="print MPI jobs (num_cores > 1)")
     parser.add_argument("--user",    dest='user',      action="store",       default = None,           help="user account for matching")
     parser.add_argument("--jobs",    dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--csv",     dest='csv',       action="store_true",                            help="print in CSV format")

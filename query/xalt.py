@@ -47,7 +47,11 @@ class Xalt:
       query += ' AND LOWER(module_name) LIKE %s ' 
     else:
       query += ' AND LOWER(exec_path) LIKE %s ' 
-    #print(query)     
+
+    if args.mpi:
+      query += ' AND num_cores > 1 '
+  
+    #print(query)
  
     db_path = self.__path + '/xalt/%s' % args.syshost
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
