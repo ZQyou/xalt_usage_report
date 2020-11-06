@@ -105,7 +105,7 @@ class Library:
         queryA = None
         year0 = year 
         month0 = month
-        print("Importing data %s-%s@%s from xalt_run" % (year, month, args.syshost))
+        print("Importing data %s-%s@%s from xalt_object" % (year, month, args.syshost))
       db_name = '%04d%02d_lib.pq' % (int(year), int(month))
       t0 = time()
       q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
