@@ -22,6 +22,7 @@ class Library:
     self.__conn = connect
     self.__query = """SELECT
     timestamp, 
+    obj_id,
     object_path AS libpaths,
     module_name AS modules
     FROM xalt_object WHERE syshost LIKE %s

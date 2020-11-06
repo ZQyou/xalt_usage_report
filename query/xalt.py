@@ -13,7 +13,7 @@ class Xalt:
     self.__modA  = []
     self.__conn = connect
     self.__query = """SELECT
-    date, run_time,
+    date, run_time, run_id,
     job_id      AS jobs,
     user        AS users, 
     num_gpus    AS n_gpus,
