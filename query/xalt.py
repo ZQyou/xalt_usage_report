@@ -50,6 +50,9 @@ class Xalt:
 
     if args.mpi:
       query += ' AND num_cores > 1 '
+
+    if args.slurm:
+      query += ' AND job_id < 50000 '
   
     #print(query)
  

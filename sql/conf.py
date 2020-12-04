@@ -44,6 +44,7 @@ class CmdLineOptions(object):
     parser.add_argument("--report",  dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
     parser.add_argument("--full",    dest='full',      action="store_true",                            help="report core hours by compiler")
     parser.add_argument("--days",    dest='days',      action="store",       default = 7,              help="report from now to DAYS back")
+    parser.add_argument("--slurm",   dest='slurm',     action="store_true",                            help="search data for owens-slurm -only")
     args = parser.parse_args()
     return args
 
