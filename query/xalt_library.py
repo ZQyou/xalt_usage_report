@@ -1,6 +1,7 @@
-import pandas as pd
 from .xalt_format import LibraryFormat
+import pandas as pd
 from time import time 
+from glob import glob
 
 database_path = '/fs/ess/PZS0710/database'
 
@@ -27,19 +28,53 @@ class Library:
 
   def build(self, args, startdate, enddate):
     sql_re = args.sql.lower()
+    sw_re = None 
+    if sql_re != '%':
+       sw_re = sql_re.replace('%','')
+       sw_re = '^' + sw_re if sql_re[0] != '%' else sw_re
+       sw_re = sw_re + '$' if sql_re[-1] != '%' else sw_re
+
     query = self.__query
     query += ' AND LOWER(t1.module_name) LIKE %s ' 
 
+    db_path = self.__path + '/xalt/%s' % args.syshost
+    db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
+
     connect = self.__conn
     queryA = df = q = None
+    year0 = month0 = '0'
 
     print("\nData processing ....")
     print("=============")
     for i in range(len(startdate)):
-      print("Importing from xalt_object")
+      year, month = startdate[i].split('-')[0:2]
+      if year0 != year or month0 != month:
+        df = None
+        year0 = year 
+        month0 = month
+      db_name = '%04d%02d' % (int(year), int(month)) + '_lib.pq'
       t0 = time()
-      q = pd.read_sql(query, connect,
+      with_db = False if args.nopq else (db_name in db_list)
+      if with_db:
+        if not isinstance(df, pd.DataFrame): 
+          print("Loading %s" % db_name)
+          df = pd.read_parquet(db_path + '/' + db_name, engine='pyarrow')
+
+        if sw_re:
+          print("Searching for %s" % sw_re)
+          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
+                     (df['modules'].str.contains("(?i)%s" % sw_re)) 
+        else:
+          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i])
+
+        # Avoid 'SettingWithCopyWarning'
+        # https://maxpowerwastaken.github.io/blog/pandas_view_vs_copy/
+        q = df.loc[df[criteria].index, :]
+      else:
+        print("Importing from xalt_object")
+        q = pd.read_sql(query, connect,
             params=(args.syshost, startdate[i], enddate[i], sql_re))
+
       print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
 
       queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q

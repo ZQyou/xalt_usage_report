@@ -4,7 +4,6 @@ from .util import get_osc_group
 import pandas as pd
 from time import time 
 from glob import glob
-import sys
 
 database_path = '/fs/ess/PZS0710/database'
 
