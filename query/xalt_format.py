@@ -70,3 +70,23 @@ def ModuleFormat(args):
 
   return [headerA, headerT, fmtT, orderT]
 
+def LibraryFormat(args):
+  top_msg = "library modules"
+  headerA = "\nTop %s %s sorted by %s\n" % (str(args.num), top_msg, args.sort)
+  headerT = ["CPUHrs", "NodeHrs", "# Jobs", "# Users"]
+  fmtT    = ["%.2f", "%.2f", "%d", "%d", "%s"]
+  orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+  if args.username:
+    headerA = "\nTop %s %s used by users\n" % (str(args.num), top_msg)
+    headerT = ["CPUHrs", "NodeHrs", "# Jobs", "Username"]
+    fmtT    = ["%.2f", "%.2f", "%d", "%s"]
+    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+
+  headerT += ["Library Module"]
+
+  headerA += '\n* Host: %s\n' % args.syshost
+  if args.sql != '%':
+    headerA += '* Search pattern: %s\n' % args.sql
+
+  return [headerA, headerT, fmtT, orderT]
+
