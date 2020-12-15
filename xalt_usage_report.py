@@ -74,9 +74,10 @@ def main():
       print(",".join(row))
     sys.exit(0)
 
+  title = 'Library' if args.library else 'Software'
   if resultA:
     print("-------------------------------------------------")
-    print("XALT Software Usage from",startdate,"to",enddate)
+    print("XALT %s Usage from" % title, startdate,"to",enddate)
     print("-------------------------------------------------")
     print(headerA)
     bt = BeautifulTbl(tbl=resultA, gap = 2)

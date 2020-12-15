@@ -71,7 +71,7 @@ class Library:
         # https://maxpowerwastaken.github.io/blog/pandas_view_vs_copy/
         q = df.loc[df[criteria].index, :]
       else:
-        print("Importing from xalt_object")
+        print("Importing from xalt_object, join_run_object and xalt_run")
         q = pd.read_sql(query, connect,
             params=(args.syshost, startdate[i], enddate[i], sql_re))
 
@@ -149,7 +149,7 @@ class Library:
         queryA = None
         year0 = year 
         month0 = month
-        print("Importing data %s-%s@%s from xalt_object" % (year, month, args.syshost))
+        print("Importing data %s-%s@%s from xalt_object, join_run_object and xalt_run" % (year, month, args.syshost))
       db_name = '%04d%02d_lib.pq' % (int(year), int(month))
       t0 = time()
       q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
