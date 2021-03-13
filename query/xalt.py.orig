@@ -2,7 +2,6 @@ from .xalt_format import ExecRunFormat, ModuleFormat
 from .xalt_sw_mapping import sw_mapping
 from .util import get_osc_group, get_heap_status
 import pandas as pd
-from re import match, compile, IGNORECASE
 from time import time 
 from glob import glob
 
@@ -58,7 +57,6 @@ class Xalt:
  
     db_path = self.__path + '/xalt/%s' % args.syshost
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
-    db_list.sort()
 
     connect = self.__conn
     queryA = df = q = None
@@ -67,34 +65,19 @@ class Xalt:
     print("\nData processing ....")
     print("=============")
     for i in range(len(startdate)):
-      year, month = list(map(int, startdate[i].split('-')[0:2]))
-      # Check if we need to load new db for other months
+      year, month = startdate[i].split('-')[0:2]
       if year0 != year or month0 != month:
-        df = None ; year0 = year ; month0 = month
-
-      db_name = '%04d%02d' % (year, month)
+        df = None
+        year0 = year 
+        month0 = month
+      db_name = '%04d%02d.pq' % (int(year), int(month))
       t0 = time()
-      with_db = False if args.nopq else (len(glob(db_path + '/' + db_name + '*.pq', recursive=False)) > 0)
+      with_db = False if args.nopq else (db_name in db_list)
       if with_db:
         if not isinstance(df, pd.DataFrame): 
-          db_re = compile(db_name + '\d+\.pq') 
-          db_count = 0
-          for db in db_list:
-            db_m = match(db_re, db)
-            if db_m:
-              #print("Loading %s" % db_m.group(0))
-              db_count += 1
-              q = pd.read_parquet(db_path + '/' + db_m.group(0), engine='pyarrow')
-              df = df.append(q, ignore_index=True) if isinstance(df, pd.DataFrame) else q
-
-          if db_count > 0:
-            print("Loading time for %d files: %.2fs" % (db_count, float(time() - t0)))
-          else:
-            print("Loading %s" % db_name + '.pq')
-            df = pd.read_parquet(db_path + '/' + db_name + '.pq', engine='pyarrow')
-
+          print("Loading %s" % db_name)
+          df = pd.read_parquet(db_path + '/' + db_name, engine='pyarrow')
         # Filtering
-        t0 = time()
         if sw_re and args.user:
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
                      (df[sw_key].str.contains("(?i)%s" % sw_re)) & \
@@ -108,7 +91,6 @@ class Xalt:
                      (df['users'] == args.user)
         else:
           criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i])
-
         # Avoid 'SettingWithCopyWarning'
         # https://maxpowerwastaken.github.io/blog/pandas_view_vs_copy/
         q = df.loc[df[criteria].index, :]
@@ -116,9 +98,10 @@ class Xalt:
         print("Importing from xalt_run")
         t0 = time()
         q = pd.read_sql(query, connect,
-                        params=(args.syshost, startdate[i], enddate[i], sql_re))
+              params=(args.syshost, startdate[i], enddate[i], sql_re))
 
       print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
+
       queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
 
     queryA['cpuhours'] = queryA['run_time'] * queryA['n_thds'] * queryA['n_cores']
@@ -132,7 +115,6 @@ class Xalt:
       equiv_patternA = sw_mapping()
       for entry in equiv_patternA:
         queryA.loc[queryA['executables'].str.contains(entry[0]), 'executables'] = entry[1]
-
     if args.jobs:
       df = queryA
       df['cpuhours'] = df['cpuhours'].divide(3600).round(2)
@@ -146,13 +128,10 @@ class Xalt:
           df['jobs'] = dg['jobs'].size()
       else:    
           df['jobs'] = dg['jobs'].nunique()
-
       if args.execpath:
         df['modules'] = dg['modules'].unique()
-
       if not args.username:
         df['users'] = dg['users'].nunique()
-
     args.sort = 'cpuhours' if not args.sort else args.sort
 
     #print(df.sort_values(by=args.sort, ascending=args.asc).head())
@@ -203,20 +182,33 @@ class Xalt:
     query = self.__query
     db_path = self.__path + '/xalt/%s' % args.syshost
     db_name = queryA = None
+    year0 = month0 = '0'
     print("\nData processing ....")
     print("=============")
-    print("Importing data from xalt_run")
     for i in range(len(startdate)):
+      year, month = startdate[i].split('-')[0:2]
+      if year0 != year or month0 != month:
+        if isinstance(queryA, pd.DataFrame):
+          print(queryA.info(verbose=False))
+          t0 = time()
+          queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow', compression='snappy')
+          print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+        queryA = None
+        year0 = year 
+        month0 = month
+        print("Importing data %s-%s@%s from xalt_run" % (year, month, args.syshost))
+      db_name = '%04d%02d.pq' % (int(year), int(month))
       t0 = time()
-      ymd = list(map(int, startdate[i].split(' ')[0].split('-')))
-      queryA = None
-      db_name = '%04d%02d%02d.pq' % tuple(ymd)
-      queryA = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
+      q = pd.read_sql(query, connect, params=(args.syshost, startdate[i], enddate[i]))
       print("Query time (%s - %s): %.2fs" % (startdate[i], enddate[i], float(time() - t0)))
-      if isinstance(queryA, pd.DataFrame):
-        print(queryA.info(verbose=False))
-        t0 = time()
-        queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow', compression='snappy')
-        print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
+      queryA = queryA.append(q, ignore_index=True) if isinstance(queryA, pd.DataFrame) else q
+    
+    get_heap_status()
+
+    if isinstance(queryA, pd.DataFrame):
+      print(queryA.info(verbose=False))
+      t0 = time()
+      queryA.to_parquet(db_path + '/' + db_name, engine='pyarrow', compression='snappy')
+      print("Writing to %s: %.2fs" % (db_name, float(time() - t0)))
     
     print("=============\n")

@@ -5,6 +5,15 @@ from re import search, compile, IGNORECASE
 from time import strftime
 from datetime import datetime, timedelta
 from calendar import monthrange
+#from guppy import hpy
+
+def get_heap_status():
+  print()
+  # https://coderzcolumn.com/tutorials/python/guppy-heapy-profile-memory-usage-in-python
+  #heap = hpy()
+  #heap_status = heap.heap()
+  #print("Heap Size : ", heap_status.size, " bytes\n")
+  #print(heap_status)
 
 group_re = compile('Primary Group:\s+(.*)\n', IGNORECASE)
 def get_osc_group(username):
@@ -30,7 +39,7 @@ def pbs_set_time_range(startD, endD, days=7):
 
   return [startdate, enddate, startdate_t, enddate_t]
 
-def xalt_set_time_range(startD, endD, days=7):
+def xalt_set_time_range(startD, endD, days=7, mode='weekly'):
   enddate = strftime('%Y-%m-%d')
   if endD is not None:
     enddate = endD
@@ -40,12 +49,12 @@ def xalt_set_time_range(startD, endD, days=7):
     startdate = startD
   # Evaluate time range
   days = (datetime.strptime(enddate, "%Y-%m-%d") - datetime.strptime(startdate, "%Y-%m-%d")).days + 1
-  res, mod = [days%7, days/7]
+  res, mod, delta = [0, days, 0 ] if mode == 'daily' else [days%7, days/7, 6]
   startdate_t = []
   enddate_t = []
   s = startdate
   for n in range(int(mod)):
-    e = (datetime.strptime(s, "%Y-%m-%d") + timedelta(6)).strftime('%Y-%m-%d');
+    e = (datetime.strptime(s, "%Y-%m-%d") + timedelta(delta)).strftime('%Y-%m-%d');
     s_p = datetime.strptime(s, "%Y-%m-%d")
     e_p = datetime.strptime(e, "%Y-%m-%d")
     if s_p.month != e_p.month:
@@ -66,8 +75,10 @@ def xalt_set_time_range(startD, endD, days=7):
 if __name__ == '__main__': 
   startD = '2019-09-01'
   endD = '2019-11-30'
-  startdate, enddate, startdate_t, enddate_t = xalt_set_time_range(startD, endD)
+  #startdate, enddate, startdate_t, enddate_t = xalt_set_time_range(startD, endD)
+  startdate, enddate, startdate_t, enddate_t = xalt_set_time_range(startD, endD, mode='daily')
   print(startdate, enddate)
+  print(len(startdate_t))
   print(startdate_t)
   print(enddate_t)
 

@@ -25,8 +25,10 @@ def main():
 
   #### Update Local Databae ####
   if args.topq:
+    s, e, s_t, e_t = xalt_set_time_range(
+         args.startD, args.endD, int(args.days), mode='daily')
     queryA = Library(sql.conn) if args.library else Xalt(sql.conn)
-    queryA.to_parquet(args, startdate_t, enddate_t)
+    queryA.to_parquet(args, s_t, e_t)
     sys.exit(0)
 
   #### DEBUG ####
