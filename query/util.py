@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-
 from subprocess import Popen, PIPE
 from re import search, compile, IGNORECASE
 from time import strftime
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from calendar import monthrange
 #from guppy import hpy
 
@@ -40,7 +39,7 @@ def pbs_set_time_range(startD, endD, days=7):
   return [startdate, enddate, startdate_t, enddate_t]
 
 def xalt_set_time_range(startD, endD, days=7, mode='weekly'):
-  enddate = strftime('%Y-%m-%d')
+  enddate = (date.today() - timedelta(1)).strftime('%Y-%m-%d')
   if endD is not None:
     enddate = endD
   # Generate weekly report by default
