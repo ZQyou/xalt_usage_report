@@ -62,7 +62,7 @@ class Xalt:
 
     connect = self.__conn
     queryA = df = q = None
-    year0 = month0 = '0'
+    year0 = month0 = 0
 
     print("\nData processing ....")
     print("=============")
