@@ -1,2 +1,0 @@
-syshost=owens database=xalt year=2019 month=02 software=None executables=pres_temp_4D_wr_C.exe cpuhours=0.0 corehours=0 nodehours=0.0 n_jobs=1 n_users=1 n_groups=0 n_accounts=0 
-syshost=owens database=xalt year=2019 month=02 software=None executables=test.intel cpuhours=0.0 corehours=0 nodehours=0.0 n_jobs=1 n_users=1 n_groups=0 n_accounts=0 
