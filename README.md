@@ -11,7 +11,7 @@ source /usr/local/venv/software_usage/$LMOD_SYSTEM_NAME/bin/activate
 ($LMOD_SYSTEM_NAME) > deactivate
 ```
 
-# Monthly Update Software Usage at Splunk
+# Update Software Usage
 ## Daily update local xalt_run
 A cronjob is scheduled for every 10pm to update local xalt_run (`/fs/project/PZS0710/database/xalt`) for last 14 days:
 ```
@@ -22,23 +22,17 @@ An output example:
 Update xalt_run from 2021-02-26 to 2021-03-12
 Submitted batch job 3378244
 ```
-Creat monthly software usage log files
+## Daily update software usage
+A cronjob is scheduled for every 11pm to update [software usage](https://splunk.osc.edu/en-US/app/osc/sciapps_software_usage) for previous and current months:
 ```
-./update_db.sh 2020 03 owens pbs
-./update_db.sh 2020 03 owens xalt
-./update_db.sh 2020 03 pitzer pbs
-./update_db.sh 2020 03 pitzer xalt
+00 23 * * *  $HOME/software_usage/update_usage.sh
 ```
-Upload usage data to Splunk
+An outuput example:
 ```
-cd usage
-ls */*.log |while read x; do logger -t sw_usage -f $x; done
-```
-Finally don't forget to push new usage data to the repo
-```
-git add usage
-git commit -m "Add 2020 Mar data"
-git push
+Update software usage from 2021-02-01 to 2021-02-28
+Submitted batch job 3386140
+Update software usage from 2021-03-01 to 2021-03-13
+Submitted batch job 3386141
 ```
 
 # XALT
