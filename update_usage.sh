@@ -19,6 +19,9 @@ update_usage() {
 year=$1
 month=$2
 
+script_home="`dirname $(readlink -f $0)`"
+cd $script_home
+
 if [ "x$year" = "x" ] || [ "x$month" = "x" ]; then
   l_startdate=$(date --date="last month" +"%Y-%m-01")
   l_enddate=$(date --date="$l_startdate + 1 month -1 day" +"%Y-%m-%d")
