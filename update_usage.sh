@@ -7,7 +7,7 @@ update_usage() {
   enddate=$2
   echo Update software usage from $startdate to $enddate
   sbatch --account=PZS0710 --nodes=1 --exclusive \
-         --time=60 \
+         --time=59 \
          --job-name="xalt-usage-update-$today" \
          --output=/fs/ess/PZS0710/database/xalt/logs/update-usage-${startdate}-${enddate}@${today}-%j.log \
          --mail-user=zyou@osc.edu \

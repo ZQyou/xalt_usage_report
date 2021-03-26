@@ -11,7 +11,7 @@ update_run() {
   enddate=$2
   echo Update xalt_run from $startdate to $enddate
   sbatch --account=PZS0710 --ntasks=4 \
-         --time=60 \
+         --time=59 \
          --job-name="xalt-run-update-$today" \
          --output=/fs/ess/PZS0710/database/xalt/logs/update-run-${startdate}-${enddate}@${today}-%j.log \
          --mail-user=zyou@osc.edu \
