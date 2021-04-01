@@ -5,8 +5,8 @@
 [ "x$startdate" = "x" ] && startdate=$(date --date="$enddate 14 days ago" +"%Y-%m-%d")
 
 echo "== Pitzer update =="
-./xalt_usage_report --start $startdate --end $enddate --syshost pitzer --topq
+../xalt_usage_report --start $startdate --end $enddate --syshost pitzer --topq
 
 echo "== Owens update =="
-./xalt_usage_report --start $startdate --end $enddate --syshost owens --topq
+../xalt_usage_report --start $startdate --end $enddate --syshost owens --topq
 
