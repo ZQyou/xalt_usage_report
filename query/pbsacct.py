@@ -1,5 +1,5 @@
 from operator import itemgetter
-from .util import get_osc_group
+from .util import get_user_group
 from datetime import datetime
 from time import time
 #import json

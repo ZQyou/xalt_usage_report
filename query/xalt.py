@@ -1,6 +1,6 @@
 from .xalt_format import ExecRunFormat, ModuleFormat
 from .xalt_sw_mapping import sw_mapping
-from .util import get_osc_group, get_heap_status
+from .util import get_user_group, get_job_account, get_heap_status
 import pandas as pd
 from re import match, compile, IGNORECASE
 from time import time 
@@ -28,7 +28,9 @@ class Xalt:
     self.__path = database_path
   
   def build(self, args, startdate, enddate):
+    #
     # Object and user searching
+    #
     sw_key = 'executables'
     sql_re = args.sql.lower()
     sw_re = None 
@@ -51,11 +53,11 @@ class Xalt:
     if args.mpi:
       query += ' AND num_cores > 1 '
 
-    if args.slurm:
-      query += ' AND job_id < 50000 '
-  
+    if args.gpu:
+      query += ' AND num_gpus > 0 '
+
     #print(query)
- 
+
     db_path = self.__path + '/xalt/%s' % args.syshost
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
     db_list.sort()
@@ -77,6 +79,7 @@ class Xalt:
       with_db = False if args.nopq else (len(glob(db_path + '/' + db_name + '*.pq', recursive=False)) > 0)
       if with_db:
         if not isinstance(df, pd.DataFrame): 
+          # Read daily data, e.g. 20210328.pq
           db_re = compile(db_name + '\d+\.pq') 
           db_count = 0
           for db in db_list:
@@ -95,19 +98,20 @@ class Xalt:
 
         # Filtering
         t0 = time()
-        if sw_re and args.user:
-          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
-                     (df[sw_key].str.contains("(?i)%s" % sw_re)) & \
-                     (df['users'] == args.user)
-        elif sw_re:
+        criteria  = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i])
+        criteria &= (df['jobs'] != 'unknown')
+        if sw_re:
           print("Searching for %s" % sw_re)
-          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
-                     (df[sw_key].str.contains("(?i)%s" % sw_re)) 
-        elif args.user:
-          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i]) & \
-                     (df['users'] == args.user)
-        else:
-          criteria = (df['date'] >= startdate[i]) & (df['date'] <= enddate[i])
+          criteria &= (df[sw_key].str.contains("(?i)%s" % sw_re)) 
+
+        if args.user:
+          criteria &= (df['users'] == args.user)
+
+        if args.mpi:
+          criteria &= (df['n_nodes'] > 1)
+
+        if args.gpu:
+          criteria &= (df['n_gpus'] > 0)
 
         # Avoid 'SettingWithCopyWarning'
         # https://maxpowerwastaken.github.io/blog/pandas_view_vs_copy/
@@ -138,14 +142,26 @@ class Xalt:
       df['cpuhours'] = df['cpuhours'].divide(3600).round(2)
       df['nodehours'] = df['nodehours'].divide(3600).round(2)
       args.sort = 'date' if not args.sort else args.sort
+      
     else:
-      dg = queryA.groupby(['users', sw_key]) if args.username else queryA.groupby(sw_key)
+      if args.account:
+        accounts = get_job_account(queryA['jobs'])
+        queryA['jobs'] = accounts 
+
+      groupA = []
+      if args.account:
+        groupA += ['jobs']
+
+      if args.username:
+        groupA += ['users']
+      
+      groupA += [sw_key]
+      dg = queryA.groupby(groupA)
+
       df = dg['cpuhours'].sum().divide(3600).round(2).to_frame()
       df['nodehours'] = dg['nodehours'].sum().divide(3600).round(2)
-      if args.count:
-          df['jobs'] = dg['jobs'].size()
-      else:    
-          df['jobs'] = dg['jobs'].nunique()
+      if not args.account:
+        df['jobs'] = dg['jobs'].size() if args.count else dg['jobs'].nunique()
 
       if args.execpath:
         df['modules'] = dg['modules'].unique()
@@ -189,13 +205,14 @@ class Xalt:
           resultA[-1].append(entryT['executables'] + " %s" % entryT['modules'])
 
       if args.group:
-        group = get_osc_group(entryT['users'])
+        group = get_user_group(entryT['users'])
         resultA[-1].insert(-1, group)
 
     statsA = {'num': len(modA),
              'cpuhours': sum([x['cpuhours'] for x in modA])}
-    if not args.jobs:
+    if not args.jobs and not args.account:
         statsA['jobs'] = sum([x['jobs'] for x in modA])
+
     return [headerA, resultA, statsA]
 
   def to_parquet(self, args, startdate, enddate):

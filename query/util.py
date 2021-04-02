@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from subprocess import Popen, PIPE
 from re import search, compile, IGNORECASE
-from time import strftime
+from time import strftime, time
 from datetime import date, datetime, timedelta
 from calendar import monthrange
 #from guppy import hpy
@@ -15,10 +15,52 @@ def get_heap_status():
   #print(heap_status)
 
 group_re = compile('Primary Group:\s+(.*)\n', IGNORECASE)
-def get_osc_group(username):
-  process = Popen(['OSCfinger %s' % username], shell=True, stdout=PIPE, stderr=PIPE)
+def get_user_group(username):
+  cmd = 'OSCfinger %s' % username
+  process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
   stdout, stderr = process.communicate()
   return search(group_re, stdout.decode('utf-8')).group(1)
+
+def get_job_account(jobs, N=2000):
+  from operator import methodcaller
+  import numpy as np
+  import sys
+  accounts = []
+  t0 = time()
+  u, indices = np.unique(jobs, return_inverse=True)
+  print("Time for finding unique jobs: %.2fs" % (float(time() - t0)))
+  print('Converting %d unique jobs to accounts' % u.size)
+  t0 = time()
+  for i in range(0, u.size, N):
+    chk = u[i:i+N]
+    cmd = "sacct -X -o Account,JobIDRaw -P -j %s" % (','.join(chk))
+#
+# sacct -X -j  2739714,2889587,2891573,2891574, -o jobidraw,jobid,account
+#    JobIDRaw        JobID    Account 
+#    ------------ ------------ ---------- 
+#    2739714      2739714         pls0146 
+#    2891573      2889587_1       pas1200 
+#    2891574      2889587_2       pas1200 
+#    2889587      2889587_3       pas1200 
+#
+    process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    lines = stdout.decode('utf-8').split('\n')[1:-1]
+    acct_jid = np.array(list(map(methodcaller("split", "|"), lines)))
+    acct = acct_jid[:,0]
+    jid  = acct_jid[:,1]
+    p = [ acct[np.where(jid == j)] for j in chk ]
+    if len(p) != len(chk):
+      print('Unmatched number of accounts (%d) with the number of jobs (%d:%d)' % (len(p), i, i+N))
+      print(chk)
+      print(p)
+      print(cmd)
+      sys.exit(1)
+
+    accounts += p
+
+  print("Time for getting projec numbers: %.2fs" % (float(time() - t0)))
+  return np.asarray(accounts)[indices]
 
 def pbs_set_time_range(startD, endD, days=7):
   enddate = strftime("%Y-%m-%d")

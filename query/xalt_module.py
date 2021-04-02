@@ -1,5 +1,5 @@
 from operator import itemgetter
-from .util import get_osc_group
+from .util import get_user_group
 
 def ModuleFormat(args):
   headerA = "\nTop %s  modules sorted by %s\n" % (str(args.num), args.sort)
