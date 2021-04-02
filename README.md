@@ -55,7 +55,8 @@ Submitted batch job 3386141
 * `--username`: print username instead of # users
 * `--group`: print username and primary group
 * `--account`: print job accounts
-* `--gpu`: print GPU usage 
+* `--gpu`: print usage for GPU jobs
+* `--mpi`: print usage for parallel jobs
 * `--user`: user name for matching
 * `--jobs`: print job ids and dates
 * `--csv`: print in CSV format
