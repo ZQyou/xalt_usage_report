@@ -52,8 +52,9 @@ Submitted batch job 3386141
 * `--end`: end date
 * `--num`: top number of entries to report (default is 20)
 * `--sort`: sort the result by corehours (default) | users | jobs | date | n_cores | n_thds 
-* `--username`: print user names instead of # users
-* `--group`: print user names and groups
+* `--username`: print username instead of # users
+* `--group`: print username and primary group
+* `--account`: print job accounts
 * `--gpu`: print GPU usage 
 * `--user`: user name for matching
 * `--jobs`: print job ids and dates
