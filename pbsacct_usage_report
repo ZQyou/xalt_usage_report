@@ -12,7 +12,7 @@ echo Command line: $0 "$@"
 module reset >& /dev/null
 script_home="`dirname $(readlink -f $0)`"
 set +eE
-source $script_home/venv/$LMOD_SYSTEM_NAME/bin/activate
+source $script_home/venv/bin/activate
 # Force stdin, stdout and stderr to be totally unbuffered. 
 # See https://unix.stackexchange.com/questions/182537/write-python-stdout-to-file-immediately
 python -u $script_home/pbsacct_usage_report.py "$@"
