@@ -4,9 +4,9 @@ These software usage tools requires Python 3 modules that not available on syste
 ```
 python3 -m venv --without-pip --prompt "usage" venv
 source venv/bin/activate
-(usage) > curl https://bootstrap.pypa.io/get-pip.py |python
-(usage) > pip install -r requirements.txt
-(usage) > deactivate
+curl https://bootstrap.pypa.io/get-pip.py |python
+pip install -r requirements.txt
+deactivate
 ```
 
 # Update Software Usage

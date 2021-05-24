@@ -59,7 +59,7 @@ def get_job_account(jobs, N=2000):
 
     accounts += p
 
-  print("Time for getting projec numbers: %.2fs" % (float(time() - t0)))
+  print("Time for getting project numbers: %.2fs" % (float(time() - t0)))
   return np.asarray(accounts)[indices]
 
 def pbs_set_time_range(startD, endD, days=7):
