@@ -39,6 +39,11 @@ def main():
     else:
       resultA = sql.show_tables()
       headerA = "\nAvailable tables in database\n"
+
+  if args.trucate:
+    sql.truncate()
+    sys.exit(0)
+
   if args.query:
     resultA = sql.user_query()
     if not resultA:

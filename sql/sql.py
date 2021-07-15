@@ -10,8 +10,8 @@ class Sql(object):
              if db == 'pbsacct' else xalt_conf(args.confFn)
      self.conn = None
      self.cursor = None
-     self.db = db if db == 'pbsacct' else 'xalt_%s' % args.syshost
      self.dbconf = db if db == 'pbsacct' else 'MYSQL'
+     self.db = db if db == 'pbsacct' else self.config.get(self.dbconf,"DB")
 
   def connect(self):
     config = self.config
@@ -36,11 +36,6 @@ class Sql(object):
 
   def user_query(self):
     query = self.args.query
-#   query = args.dbg + \
-#   """
-#   ORDER BY date DESC
-#   """ + \
-#   "LIMIT " + str(args.num)
     self.cursor.execute(query)
     header = [i[0] for i in self.cursor.description]
     hline  = list(map(lambda x: "-"*len(x), header))
@@ -48,3 +43,18 @@ class Sql(object):
     resultA.insert(0, hline)
     resultA.insert(0, header)
     return resultA
+  
+  def truncate(self):
+      # set FOREIGN_KEY_CHECKS=0; truncate table xalt_run; set FOREIGN_KEY_CHECKS=1'
+      if self.db == 'xalt_owens' or self.db == 'xalt_pitzer':
+        print("Cannot trucate tables of XALT production database")
+        return
+      self.cursor.execute('show tables')
+      resultA = list(self.cursor.fetchall())
+      self.cursor.execute('set FOREIGN_KEY_CHECKS=0')
+      for t in resultA:
+        print('Truncating %s' % t)
+        self.cursor.execute('truncate table %s' % t)
+
+      self.cursor.execute('set FOREIGN_KEY_CHECKS=1')
+      return

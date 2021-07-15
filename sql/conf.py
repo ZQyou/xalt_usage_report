@@ -40,6 +40,7 @@ class CmdLineOptions(object):
     parser.add_argument("--jobs",     dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--csv",      dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--query",    dest='query',     action="store",       default = None,           help="custom user query")
+    parser.add_argument("--truncate", dest='trucate',   action="store_true",  default = False,          help="trucate all tables of test database")
     parser.add_argument("--log",      dest='log',       action="store",       default = None,           help="dump the result to log: stdout | syslog")
     parser.add_argument("--show",     dest='show',      action="store",       default = None,           help="show/describe tables of thea database, e.g. --show tables")
     parser.add_argument("--report",   dest='report',    action="store_true",                            help="report from original xalt_usage_report.py")
@@ -53,7 +54,7 @@ def xalt_conf(confFn):
   config       = configparser.ConfigParser()     
   configFn     = os.path.join(XALT_ETC_DIR, confFn)
   config.read(configFn)
-
+  print("Config: %s\n" % configFn)
   return config
 
 def pbsacct_conf(syshost, confFn):
