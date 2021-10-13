@@ -12,6 +12,10 @@ class Sql(object):
      self.cursor = None
      self.dbconf = db if db == 'pbsacct' else 'MYSQL'
      self.db = db if db == 'pbsacct' else self.config.get(self.dbconf,"DB")
+     if args.db:
+         self.db = args.db
+
+     print("Database: %s" % self.db)
 
   def connect(self):
     config = self.config

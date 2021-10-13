@@ -20,6 +20,7 @@ class CmdLineOptions(object):
     parser.add_argument("--start",    dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
     parser.add_argument("--end",      dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost",  dest='syshost',   action="store",       default = syshost,        help="syshost")
+    parser.add_argument("--db",       dest='db',        action="store",       default = None,           help="xalt database")
     parser.add_argument("--sw",       dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
     parser.add_argument("--count",    dest='count',     action="store_true",                            help="count entries instead of unique execpaths")
     parser.add_argument("--nopq",     dest='nopq',      action="store_true",                            help="do not use local parquet database")
@@ -54,7 +55,7 @@ def xalt_conf(confFn):
   config       = configparser.ConfigParser()     
   configFn     = os.path.join(XALT_ETC_DIR, confFn)
   config.read(configFn)
-  print("Config: %s\n" % configFn)
+  print("Config: %s" % configFn)
   return config
 
 def pbsacct_conf(syshost, confFn):

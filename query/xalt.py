@@ -16,6 +16,7 @@ class Xalt:
     date, run_time, run_id,
     job_id      AS jobs,
     user        AS users, 
+    account     AS accounts,
     num_gpus    AS n_gpus,
     num_cores   AS n_cores,
     num_threads AS n_thds,

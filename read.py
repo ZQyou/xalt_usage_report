@@ -42,12 +42,11 @@ def main():
     read_pq(system, database)
 
     # https://coderzcolumn.com/tutorials/python/guppy-heapy-profile-memory-usage-in-python
-    from guppy import hpy
-    heap = hpy()
-    heap_status = heap.heap()
-    print("Heap Size : ", heap_status.size, " bytes\n")
-    print(heap_status)
-
+    #from guppy import hpy
+    #heap = hpy()
+    #heap_status = heap.heap()
+    #print("Heap Size : ", heap_status.size, " bytes\n")
+    #print(heap_status)
 
 if __name__ == '__main__':
     main()
