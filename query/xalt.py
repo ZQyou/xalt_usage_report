@@ -108,6 +108,9 @@ class Xalt:
         if args.user:
           criteria &= (df['users'] == args.user)
 
+        if args.project:
+          criteria &= (df['accounts'] == args.project.lower())
+
         if args.mpi:
           criteria &= (df['n_nodes'] > 1)
 
@@ -146,8 +149,9 @@ class Xalt:
       
     else:
       if args.account:
-        accounts = get_job_account(queryA['jobs'])
-        queryA['jobs'] = accounts 
+        #accounts = get_job_account(queryA['jobs'])
+        #queryA['jobs'] = accounts 
+        queryA['jobs'] = queryA['accounts']
 
       groupA = []
       if args.account:

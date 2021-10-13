@@ -38,6 +38,7 @@ class CmdLineOptions(object):
     parser.add_argument("--gpu",      dest='gpu',       action="store_true",                            help="print usage for GPU jobs")
     parser.add_argument("--mpi",      dest='mpi',       action="store_true",                            help="print usage for parallel jobs")
     parser.add_argument("--user",     dest='user',      action="store",       default = None,           help="user account for matching")
+    parser.add_argument("--project",  dest='project',   action="store",       default = None,           help="project account for matching")
     parser.add_argument("--jobs",     dest='jobs',      action="store_true",                            help="print job ids and dates")
     parser.add_argument("--csv",      dest='csv',       action="store_true",                            help="print in CSV format")
     parser.add_argument("--query",    dest='query',     action="store",       default = None,           help="custom user query")

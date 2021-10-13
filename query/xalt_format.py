@@ -25,6 +25,19 @@ def ExecRunFormat(args):
     fmtT    = ["%.2f", "%.2f", "%s", "%s"]
     orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
 
+  if args.project:
+    headerA = "\nTop %s %s used by project %s" % (str(args.num), top_msg, args.project)
+    if args.username:
+      headerA += " in username\n"
+      headerT = ["CPUHrs", "NodeHrs", "%s" % count, "Username"]
+      fmtT    = ["%.2f", "%.2f", "%d", "%s" ]
+    else:
+      headerA += "\n"
+      headerT = ["CPUHrs", "NodeHrs", "%s" % count, "# Users"]
+      fmtT    = ["%.2f", "%.2f", "%d", "%d" ]
+
+    orderT  = ['cpuhours', 'nodehours', 'jobs', 'users']
+
   if args.user:
     headerA = "\nTop %s %s used by %s\n" % (str(args.num), top_msg, args.user)
     headerT = ["CPUHrs", "NodeHrs", "%s" % count]
