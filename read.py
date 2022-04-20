@@ -12,6 +12,9 @@ def read_pq(system, database):
     df = pd.read_parquet(os.path.join(prefix, system, database) + '.pq', engine='pyarrow')
     print("Load time: %.2fs" % float(time() - t0))
     print(df.head())
+    print(df[df['run_time'] < 900].head())
+    df.loc[df['run_time'] < 900, 'run_time'] *= 1/0.0001
+    print(df.head())
 #   print(df.size)
     print(len(df.index))
     print(df.columns)
