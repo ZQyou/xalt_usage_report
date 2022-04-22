@@ -9,6 +9,6 @@ startdate=${startdate:-$(date --date="$enddate 14 days ago" +"%Y-%m-%d")}
 echo "== Pitzer update =="
 ../xalt_usage_report --start $startdate --end $enddate --syshost pitzer --db xalt_pitzer --topq
 
-echo "== Owens update =="
-../xalt_usage_report --start $startdate --end $enddate --syshost owens --db xalt_owens --topq
+#echo "== Owens update =="
+#../xalt_usage_report --start $startdate --end $enddate --syshost owens --db xalt_owens --topq
 
