@@ -163,8 +163,8 @@ class Xalt:
       groupA += [sw_key]
       dg = queryA.groupby(groupA)
 
-      df = dg['cpuhours'].sum().divide(3600).round(2).to_frame()
-      df['nodehours'] = dg['nodehours'].sum().divide(3600).round(2)
+      df = dg['cpuhours'].sum().divide(3600).astype(float).round(2).to_frame()
+      df['nodehours'] = dg['nodehours'].sum().divide(3600).astype(float).round(2)
       if not args.account:
         df['jobs'] = dg['jobs'].size() if args.count else dg['jobs'].nunique()
 
