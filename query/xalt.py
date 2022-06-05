@@ -29,6 +29,9 @@ class Xalt:
     self.__path = database_path
   
   def build(self, args, startdate, enddate):
+    if args.pq_path != "default":
+       self.__path = args.pq_path
+       print("Use parquet database path %s" % self.__path)
     #
     # Object and user searching
     #
@@ -221,6 +224,9 @@ class Xalt:
     return [headerA, resultA, statsA]
 
   def to_parquet(self, args, startdate, enddate):
+    if args.pq_path != "default":
+       self.__path = args.pq_path
+       print("Use parquet database path %s" % self.__path)
     connect = self.__conn
     query = self.__query
     db_path = self.__path + '/xalt/%s' % args.syshost
