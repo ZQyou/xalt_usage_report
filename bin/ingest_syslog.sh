@@ -1,6 +1,6 @@
 #!/bin/bash
 
-syslog_prefix=/fs/ess/PZS0710/xalt/logs/2022/$LMOD_SYSTEM_NAME
+syslog_prefix=/fs/ess/PZS0710/xalt/mysql/logs/2022/$LMOD_SYSTEM_NAME
 xalt_mysql_home=/fs/ess/PZS0710/xalt/mysql
 
 syslog_fn=$1

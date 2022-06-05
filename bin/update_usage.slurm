@@ -17,12 +17,12 @@ tmpfile="${logfile}.tmp"
 grep ^syshost $tmpfile |while read x; do echo $x year=$year month=$month; done |tee $logfile
 test -f $tmpfile && rm -f $tmpfile
 
-#echo "== Owens update =="
-#logfile="${usage_path}/xalt/${year}${month}owens.log"
-#tmpfile="${logfile}.tmp"
-#../xalt_usage_report --start $startdate --end $enddate --syshost owens --num 50 --log $logger |& tee $tmpfile
-#grep ^syshost $tmpfile |while read x; do echo $x year=$year month=$month; done |tee $logfile
-#test -f $tmpfile && rm -f $tmpfile
+echo "== Owens update =="
+logfile="${usage_path}/xalt/${year}${month}owens.log"
+tmpfile="${logfile}.tmp"
+../xalt_usage_report --start $startdate --end $enddate --syshost owens --num 50 --log $logger |& tee $tmpfile
+grep ^syshost $tmpfile |while read x; do echo $x year=$year month=$month; done |tee $logfile
+test -f $tmpfile && rm -f $tmpfile
 
 echo "== Push the result to Splunk =="
 cd $usage_path
