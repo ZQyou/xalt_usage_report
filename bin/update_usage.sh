@@ -1,23 +1,24 @@
 #!/bin/bash
 
+year=$1; shift
+month=$1; shift
+syshost_list="$@"
+syshost_list=${syshost_list:-"ascend pitzer owens"}
 today=$(date --date='today' +"%Y%m%d")
 
 update_usage() {
-  startdate=$1
-  enddate=$2
-  echo Update software usage from $startdate to $enddate
+  local _startdate=$1
+  local _enddate=$2
+  echo Update software usage from ${_startdate} to ${_enddate} for ${syshost_list}
   sbatch --account=PZS0710 --nodes=1 --exclusive \
          --time=59 \
          --job-name="xalt-usage-update-$today" \
-         --output=/fs/ess/PZS0710/database/xalt/logs/update-usage-${startdate}-${enddate}@${today}-%j.log \
+         --output=/fs/ess/PZS0710/database/xalt/logs/update-usage-${_startdate}-${_enddate}@${today}-%j.log \
          --mail-user=zyou@osc.edu \
          --mail-type=FAIL \
-         --export=startdate=${startdate},enddate=${enddate} \
+         --export=startdate=${_startdate},enddate=${_enddate},syshost_list="${syshost_list}" \
          update_usage.slurm
 }
-
-year=$1
-month=$2
 
 script_home="`dirname $(readlink -f $0)`"
 cd $script_home

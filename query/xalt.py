@@ -63,6 +63,7 @@ class Xalt:
     #print(query)
 
     db_path = self.__path + '/xalt/%s' % args.syshost
+    print("Local Parquet Path: %s" % db_path)
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
     db_list.sort()
 
