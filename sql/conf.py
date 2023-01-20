@@ -16,11 +16,11 @@ class CmdLineOptions(object):
   def execute(self):
     """ Specify command line arguments and parse the command line"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--confFn",   dest='confFn',    action="store",       default = "xalt_db.conf", help="db name")
-    parser.add_argument("--start",    dest='startD',    action="store",       default = None,           help="start date, e.g 2018-10-23")
+    parser.add_argument("--confFn",   dest='confFn',    action="store",       default = None,           help="full path to database conf")
+    parser.add_argument("--start",    dest='startD',    action="store",       default = None,           help="start date, e.g. 2018-10-23")
     parser.add_argument("--end",      dest='endD',      action="store",       default = None,           help="end date")
     parser.add_argument("--syshost",  dest='syshost',   action="store",       default = syshost,        help="syshost")
-    parser.add_argument("--db",       dest='db',        action="store",       default = None,           help="x alt database")
+    parser.add_argument("--db",       dest='db',        action="store",       default = None,           help="xalt database")
     parser.add_argument("--sw",       dest='sw',        action="store_true",  default = True,           help="print software/executable usage (default)")
     parser.add_argument("--count",    dest='count',     action="store_true",                            help="count entries instead of unique execpaths")
     parser.add_argument("--nopq",     dest='nopq',      action="store_true",                            help="do not use local parquet database")
@@ -53,11 +53,13 @@ class CmdLineOptions(object):
     return args
 
 def xalt_conf(confFn):
-  XALT_ETC_DIR = os.environ.get("XALT_ETC_DIR","./")
+  if not confFn:
+    XALT_ETC_DIR = os.environ.get("XALT_ETC_DIR","./")
+    confFn       = os.path.join(XALT_ETC_DIR, "xalt_db.conf")
+
+  print("Config: %s" % confFn)
   config       = configparser.ConfigParser()     
-  configFn     = os.path.join(XALT_ETC_DIR, confFn)
-  config.read(configFn)
-  print("Config: %s" % configFn)
+  config.read(confFn)
   return config
 
 def pbsacct_conf(syshost, confFn):
