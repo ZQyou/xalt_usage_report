@@ -1,12 +1,13 @@
-from .xalt_format import ExecRunFormat, ModuleFormat
-from .xalt_sw_mapping import sw_mapping
-from .util import get_user_group, get_job_account, get_heap_status
+import os
 import pandas as pd
 from re import match, compile, IGNORECASE
 from time import time 
 from glob import glob
 
-database_path = '/fs/ess/PZS0710/database'
+from .xalt_format import ExecRunFormat, ModuleFormat
+from .xalt_sw_mapping import sw_mapping
+from .util import get_user_group, get_job_account, get_heap_status
+from sql import usage_conf
 
 class Xalt:
   def __init__(self, connect):
@@ -26,12 +27,13 @@ class Xalt:
     FROM xalt_run WHERE syshost LIKE %s
     AND date >= %s and date <= %s
     """
-    self.__path = database_path
+    self.__path = usage_conf().get('Parquet', 'database_prefix')
   
   def build(self, args, startdate, enddate):
     if args.pq_path != "default":
        self.__path = args.pq_path
        print("Use parquet database path %s" % self.__path)
+
     #
     # Object and user searching
     #
@@ -62,7 +64,7 @@ class Xalt:
 
     #print(query)
 
-    db_path = self.__path + '/xalt/%s' % args.syshost
+    db_path = os.path.join(self.__path, '%s' % args.syshost)
     print("Local Parquet Path: %s" % db_path)
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
     db_list.sort()
@@ -228,9 +230,10 @@ class Xalt:
     if args.pq_path != "default":
        self.__path = args.pq_path
        print("Use parquet database path %s" % self.__path)
+
     connect = self.__conn
     query = self.__query
-    db_path = self.__path + '/xalt/%s' % args.syshost
+    db_path = os.path.join(self.__path, '%s' % args.syshost)
     db_name = queryA = None
     print("\nData processing ....")
     print("=============")

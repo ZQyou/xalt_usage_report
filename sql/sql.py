@@ -1,17 +1,16 @@
-from .conf import xalt_conf, pbsacct_conf
+from .conf import xalt_conf
 from base64 import b64decode
 import pymysql, base64
 from pprint import pprint
 
 class Sql(object):
-  def __init__(self, args, db=None):
+  def __init__(self, args):
      self.args = args
-     self.config = pbsacct_conf(args.syshost, args.confFn) \
-             if db == 'pbsacct' else xalt_conf(args.confFn)
+     self.config = xalt_conf(args.confFn)
      self.conn = None
      self.cursor = None
-     self.dbconf = db if db == 'pbsacct' else 'MYSQL'
-     self.db = db if db == 'pbsacct' else self.config.get(self.dbconf,"DB")
+     self.dbconf = 'MYSQL'
+     self.db = self.config.get(self.dbconf,"DB")
      if args.db:
          self.db = args.db
 
@@ -47,18 +46,3 @@ class Sql(object):
     resultA.insert(0, hline)
     resultA.insert(0, header)
     return resultA
-  
-  def truncate(self):
-      # set FOREIGN_KEY_CHECKS=0; truncate table xalt_run; set FOREIGN_KEY_CHECKS=1'
-      if self.db == 'xalt_owens' or self.db == 'xalt_pitzer':
-        print("Cannot trucate tables of XALT production database")
-        return
-      self.cursor.execute('show tables')
-      resultA = list(self.cursor.fetchall())
-      self.cursor.execute('set FOREIGN_KEY_CHECKS=0')
-      for t in resultA:
-        print('Truncating %s' % t)
-        self.cursor.execute('truncate table %s' % t)
-
-      self.cursor.execute('set FOREIGN_KEY_CHECKS=1')
-      return

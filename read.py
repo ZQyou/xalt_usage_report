@@ -3,8 +3,9 @@ import sys, os
 from time import time
 import numpy as np
 from glob import glob
+from sql import usage_conf
 
-prefix = "/fs/ess/PZS0710/database/xalt"
+prefix = usage_conf().get('Parquet', 'database_prefix')
 
 def read_pq(system, database):
     t0 = time()

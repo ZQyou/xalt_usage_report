@@ -1,11 +1,10 @@
 from .xalt_format import LibraryFormat
 from .util import get_heap_status
+import os
 import pandas as pd
 from time import time 
 from glob import glob
 from re import compile, match
-
-database_path = '/fs/ess/PZS0710/database'
 
 class Library:
   def __init__(self, connect):
@@ -26,7 +25,7 @@ class Library:
     AND t1.obj_id = t2.obj_id AND t2.run_id = t3.run_id
     AND t3.date >= %s and t3.date <= %s
     """
-    self.__path = database_path
+    self.__path = usage_conf().get('Parquet', 'database_prefix')
 
   def build(self, args, startdate, enddate):
     sql_re = args.sql.lower()
@@ -39,7 +38,7 @@ class Library:
     query = self.__query
     query += ' AND LOWER(t1.module_name) LIKE %s ' 
 
-    db_path = self.__path + '/xalt/%s/lib' % args.syshost
+    db_path = os.path.join(self.__path, '%s', % args.syshost, 'lib')
     db_list = [ f.split('/')[-1] for f in glob(db_path + '/*.pq', recursive=False) ]
     db_list.sort()
 
@@ -153,7 +152,7 @@ class Library:
   def to_parquet(self, args, startdate, enddate):
     connect = self.__conn
     query = self.__query
-    db_path = self.__path + '/xalt/%s/lib' % args.syshost
+    db_path = os.path.join(self.__path, '%s' % args.syshost, 'lib')
     db_name = queryA = None
     print("\nData processing ....")
     print("=============")

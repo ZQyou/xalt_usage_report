@@ -20,18 +20,6 @@ An output example:
 Update xalt_run from 2021-02-26 to 2021-03-12
 Submitted batch job 3378244
 ```
-## Daily update software usage
-A cronjob is scheduled for every 11pm to update [software usage](https://splunk.osc.edu/en-US/app/osc/sciapps_software_usage) for previous and current months:
-```
-00 23 * * *  $HOME/software_usage/update_usage.sh
-```
-An outuput example:
-```
-Update software usage from 2021-02-01 to 2021-02-28
-Submitted batch job 3386140
-Update software usage from 2021-03-01 to 2021-03-13
-Submitted batch job 3386141
-```
 
 # XALT
 ## Description 
@@ -72,29 +60,3 @@ Find what users using lammps
 ```
 xalt_usage_report --module --sql %lammps% --username
 ```
-
-# PBSACCT
-## Description 
-`pbsacct_usage_report` analyzes PBSACCT database and generates a software usage report. By default the script generates a week-to-date report for the cluster where you login. Use following options to filter or change the output.
-
-## Note for output
-* `CPUHrs`: walltime x # procs
-* `NodeHrs`: walltime x # nodes
-* `Efficiency`: cpu_t / (walltime x # procs)
-
-## Command-line options
-* `--sql`: SQL pattern for matching software. (`%` is SQL wildcard character)
-* `--start`: start date, e.g. 2018-12-25
-* `--end`: end date
-* `--syshost`: search by syshost (default is $LMOD_SYSTEM_NAME)
-* `--num`: top number of entries to report (default is 20)
-* `--sort`: sort the result by corehours (default) | nodehours | users | groups | accounts | jobs | software 
-* `--username`: print user names, accounts and groups instead of # users, # accounts and # groups
-* `--user`: user name for matching
-* `--host`: search by hostname
-* `--queue`: search by queue: serial | parallel | lognserial | longparallel | largeparallel | largemem | hugemem
-* `--rsvn`: search by reservation: gpu | pfs | ime
-* `--jobs`: print job ids and dates
-* `--days`: report from now to DAYS back
-* `--csv`: print in CSV format
-

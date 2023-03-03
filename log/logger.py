@@ -86,7 +86,6 @@ adapter.info('The sky is so blue', my_context='6642')
 adapter.info('The sky is so blue')
 """
 
-
 if __name__ == '__main__': 
   syshost = 'pitzer'
   database = 'pbsacct'

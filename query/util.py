@@ -62,24 +62,6 @@ def get_job_account(jobs, N=2000):
   print("Time for getting project numbers: %.2fs" % (float(time() - t0)))
   return np.asarray(accounts)[indices]
 
-def pbs_set_time_range(startD, endD, days=7):
-  enddate = strftime("%Y-%m-%d")
-  if endD is not None:
-    enddate = endD
-  
-  # Generate week-to-date report by default
-  startdate = (datetime.strptime(enddate, "%Y-%m-%d") - timedelta(days-1)).strftime("%Y-%m-%d")
-  if startD is not None:
-    startdate = startD
-
-  isotimefmt = "%Y-%m-%dT%H:%M:%S"
-  startdate_t = startdate + "T00:00:00"
-  enddate_t = enddate + "T23:59:59"
-  startdate_t = datetime.strptime(startdate_t, isotimefmt).strftime("%s")
-  enddate_t = datetime.strptime(enddate_t, isotimefmt).strftime("%s")
-
-  return [startdate, enddate, startdate_t, enddate_t]
-
 def xalt_set_time_range(startD, endD, days=7, mode='weekly'):
   enddate = (date.today() - timedelta(1)).strftime('%Y-%m-%d')
   if endD is not None:
