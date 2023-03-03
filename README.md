@@ -9,18 +9,6 @@ pip install -r requirements.txt
 deactivate
 ```
 
-# Update Software Usage
-## Daily update local xalt_run
-A cronjob is scheduled for every 10pm to update local xalt_run (`/fs/project/PZS0710/database/xalt`) for last 14 days:
-```
-00 22 * * *  $HOME/software_usage/update_db.sh
-```
-An output example:
-```
-Update xalt_run from 2021-02-26 to 2021-03-12
-Submitted batch job 3378244
-```
-
 # XALT
 ## Description 
 `xalt_usage_report` analyzes XATL database and generates a usage report of software/executables or modules By default the script generates a week-to-date software usage report for the system where you login. Use following options to filter or change the output.
